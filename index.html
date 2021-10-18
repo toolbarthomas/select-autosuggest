@@ -1,0 +1,42 @@
+<!doctype>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Select Autosuggest</title>
+
+    <script src="src/index.js"></script>
+    <script>
+      window.addEventListener('DOMContentLoaded', (event) => {
+        if (SelectAutosuggest) {
+          const select = new SelectAutosuggest({
+            target: '.select-autosuggest',
+          });
+
+          select.start();
+        }
+      })
+    </script>
+  </head>
+  <body>
+
+    <p>Before</p>
+
+    <section>
+      <h5>Initial setup</h5>
+      <select id="colors" class="select-autosuggest" data-endpoint="https://example.com">
+        <option value="1">Red</option>
+        <option value="2">Green</option>
+        <option value="3">Blue</option>
+      </select>
+
+      <select multiple class="select-autosuggest" data-endpoint="https://example.com">
+        <option selected value="foo">FOO</option>
+        <option value="bar">BAR</option>
+        <option value="baz">BAZ</option>
+      </select>
+    </section>
+
+    <p>After</p>
+
+  </body>
+</html>

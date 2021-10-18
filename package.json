@@ -1,0 +1,24 @@
+{
+  "name": "select-autosuggest",
+  "version": "0.1.0",
+  "description": "Multiselect with API endpoint features",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/toolbarthomas/select-autosuggest.git"
+  },
+  "keywords": [
+    "select",
+    "multiple",
+    "vanilla"
+  ],
+  "author": "Thomas van der Velde <contact@toolbarthomas.net>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/toolbarthomas/select-autosuggest/issues"
+  },
+  "homepage": "https://github.com/toolbarthomas/select-autosuggest#readme"
+}
