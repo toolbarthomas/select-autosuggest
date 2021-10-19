@@ -307,8 +307,6 @@ class SelectAutosuggest {
       return;
     }
 
-    console.log(this.instances[id].suggestedValues);
-
     if (
       this.instances[id].suggestedValues &&
       this.instances[id].suggestedValues.length
@@ -333,13 +331,11 @@ class SelectAutosuggest {
       this.instances[id].suggestedValues.forEach((val, index) => {
         const [value, label] = val;
 
-        console.log("selected", value);
-
+        // Filter out the already selected suggestions.
         if (
           this.instances[id].selectedValues &&
           this.instances[id].selectedValues.filter((v) => v[0] === value).length
         ) {
-          console.log(`Filter duplicate: ${value}`);
           return;
         }
 
@@ -705,21 +701,7 @@ class SelectAutosuggest {
     const instance = this.instances[id];
     const cacheTag = `data-${this.NAMESPACE}-cached-value`;
     const endpointTag = `data-${this.NAMESPACE}-endpoint`;
-    const configTag = `data-${this.NAMESPACE}-config`;
-    let config = this.config;
-
-    try {
-      const inlineConfig = this.instances[id].target.getAttribute(configTag)
-        ? JSON.parse(this.instances[id].target.getAttribute(configTag))
-        : this.config;
-
-      if (inlineConfig) {
-        console.log(`Using inline config for ${id}...`);
-        config = Object.assign(inlineConfig, this.config);
-      }
-    } catch (exception) {
-      console.log(exception);
-    }
+    const config = this.config;
 
     const endpoint = this.instances[id].target.getAttribute(endpointTag)
       ? this.instances[id].target.getAttribute(endpointTag)
@@ -1035,7 +1017,26 @@ class SelectAutosuggest {
     const request = new XMLHttpRequest();
 
     const c = config || {};
-    request.open(c.method || "POST", endpoint, true);
+    let method = c.method && c.method === "POST" ? "POST" : "GET";
+
+    if (this.instances[id].target)
+      request.open(
+        method,
+        method === "POST"
+          ? endpoint
+          : `${endpoint}${this.serialize(c.parameters || {})}`,
+        true
+      );
+
+    // Define the required header for the actual request.
+    if (method === "POST") {
+      request.setRequestHeader(
+        "Content-Type",
+        c.contentType
+          ? c.contentType
+          : "application/x-www-form-urlencoded; charset=UTF-8"
+      );
+    }
 
     request.onload = function () {
       if (this.status >= 200 && this.status < 400) {
@@ -1092,7 +1093,11 @@ class SelectAutosuggest {
       }
     };
 
-    request.send();
+    request.send(
+      c.config && c.config.method === "POST" && c.config.parameters
+        ? c.config.parameters
+        : null
+    );
   }
 
   /**
@@ -1119,5 +1124,23 @@ class SelectAutosuggest {
     }
 
     return id;
+  }
+
+  /**
+   * Transforms the given Object to a valid query string.
+   *
+   * @param {Object} commit The Object to convert.
+   */
+  serialize(commit) {
+    let result = [];
+    Object.keys(commit).forEach((c) => {
+      if (commit.hasOwnProperty(c)) {
+        result.push(
+          encodeURIComponent(c) + "=" + encodeURIComponent(commit[c])
+        );
+      }
+    });
+
+    return result.length ? `?${result.join("&")}` : "";
   }
 }

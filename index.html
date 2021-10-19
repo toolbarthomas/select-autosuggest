@@ -19,9 +19,12 @@
             target: '.select-autosuggest',
             config: {
               placeholder: 'Search by keyword',
-              maxSuggestions: 48,
+              parameters: {
+                q: 'foo'
+              },
+              maxSuggestions: 6,
               method: 'GET',
-              transform: (result) => Object.keys(result).map(k => [encodeURIComponent(k), k]);
+              transform: (result) => Object.keys(result).map(k => [encodeURIComponent(k), k])
             },
           });
 
@@ -36,7 +39,7 @@
 
       <form>
         <h5>Initial setup</h5>
-        <select id="colors" class="select-autosuggest" data-select-autosuggest-endpoint="https://raw.githubusercontent.com/mdn/content/main/files/en-us/_wikihistory.json" data-select-autosuggest-config='{"method": "GET"}' data-select-autosuggest-placeholder="Insert some words">
+        <select id="colors" class="select-autosuggest" data-select-autosuggest-endpoint="https://raw.githubusercontent.com/mdn/content/main/files/en-us/_wikihistory.json" data-select-autosuggest-placeholder="Insert some words">
           <option value="1">Red</option>
           <option value="2">Green</option>
           <option value="3">Blue</option>
@@ -46,6 +49,7 @@
         <br/>
         <br/>
 
+        <h5>Multiple select</h5>
         <select multiple class="select-autosuggest" data-select-autosuggest-endpoint="https://raw.githubusercontent.com/mdn/content/main/files/en-us/_wikihistory.json">
           <option selected value="foo">FOO</option>
           <option value="bar">BAR</option>
