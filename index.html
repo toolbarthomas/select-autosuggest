@@ -4,12 +4,25 @@
     <meta charset="utf-8">
     <title>Select Autosuggest</title>
 
+    <style>
+      .wrapper {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+    </style>
+
     <script src="src/index.js"></script>
     <script>
       window.addEventListener('DOMContentLoaded', (event) => {
         if (SelectAutosuggest) {
           const select = new SelectAutosuggest({
             target: '.select-autosuggest',
+            config: {
+              placeholder: 'Search by keyword',
+              maxSuggestions: 48,
+              method: 'GET',
+              transform: (result) => Object.keys(result).map(k => [encodeURIComponent(k), k]);
+            },
           });
 
           select.start();
@@ -18,25 +31,30 @@
     </script>
   </head>
   <body>
+    <div class="wrapper">
+      <p>Voluptate est minim proident sunt magna excepteur deserunt sunt. Excepteur pariatur sit quis ullamco. Dolor cupidatat labore excepteur nisi culpa fugiat cillum nostrud ipsum aliqua sint consectetur aliqua. Nulla adipisicing dolore enim commodo occaecat deserunt dolor consectetur.</p>
 
-    <p>Before</p>
+      <form>
+        <h5>Initial setup</h5>
+        <select id="colors" class="select-autosuggest" data-select-autosuggest-endpoint="https://raw.githubusercontent.com/mdn/content/main/files/en-us/_wikihistory.json" data-select-autosuggest-config='{"method": "GET"}' data-select-autosuggest-placeholder="Insert some words">
+          <option value="1">Red</option>
+          <option value="2">Green</option>
+          <option value="3">Blue</option>
+        </select>
 
-    <section>
-      <h5>Initial setup</h5>
-      <select id="colors" class="select-autosuggest" data-endpoint="https://example.com">
-        <option value="1">Red</option>
-        <option value="2">Green</option>
-        <option value="3">Blue</option>
-      </select>
+        <br/>
+        <br/>
+        <br/>
 
-      <select multiple class="select-autosuggest" data-endpoint="https://example.com">
-        <option selected value="foo">FOO</option>
-        <option value="bar">BAR</option>
-        <option value="baz">BAZ</option>
-      </select>
-    </section>
+        <select multiple class="select-autosuggest" data-select-autosuggest-endpoint="https://raw.githubusercontent.com/mdn/content/main/files/en-us/_wikihistory.json">
+          <option selected value="foo">FOO</option>
+          <option value="bar">BAR</option>
+          <option value="baz">BAZ</option>
+        </select>
+      </form>
 
-    <p>After</p>
+      <p>Et enim fugiat magna incididunt dolore aliqua laboris est sunt mollit elit. Veniam sunt deserunt anim esse mollit velit consectetur duis nostrud. Pariatur cillum fugiat Lorem proident elit qui. Incididunt elit voluptate veniam pariatur sit tempor incididunt ad veniam minim cupidatat ullamco esse id.</p>
+    </div>
 
   </body>
 </html>

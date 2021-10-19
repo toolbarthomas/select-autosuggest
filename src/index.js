@@ -26,11 +26,6 @@ class SelectAutosuggest {
     this.config = config;
 
     /**
-     * Prevents the instance from stacking up endpoint calls.
-     */
-    this.locked = null;
-
-    /**
      * Stores the throttled instances.
      */
     this.queue = {};
@@ -58,17 +53,14 @@ class SelectAutosuggest {
 
       const id = this.subscribe(this.target[i]);
 
-      // First render the wrapper before we proceed rendering the rest.
+      this.renderTarget(this.target[i]);
       this.renderWrapper(this.target[i]);
 
-      // Render the selections container.
-      this.renderSelections(this.target[i]);
+      this.renderSuggestions(this.target[i]);
 
-      // Render the actual filter
       this.renderFilter(this.target[i]);
 
-      // Render the suggestions container.
-      this.renderSuggestions(this.target[i]);
+      this.renderSelections(this.target[i]);
 
       this.listen(this.target[i]);
 
@@ -298,7 +290,7 @@ class SelectAutosuggest {
 
     this.instances[id].preventFilter = true;
 
-    this.instances[id].filter.value = this.instances[id].selectedValues[0];
+    this.instances[id].filter.value = this.instances[id].selectedValues[0][1];
 
     this.instances[id].preventFilter = false;
   }
@@ -315,21 +307,42 @@ class SelectAutosuggest {
       return;
     }
 
+    console.log(this.instances[id].suggestedValues);
+
     if (
       this.instances[id].suggestedValues &&
       this.instances[id].suggestedValues.length
     ) {
       const fragment = document.createDocumentFragment();
 
+      // Define the max amount of results.
+      if (
+        this.config &&
+        !isNaN(parseFloat(this.config.maxSuggestions)) &&
+        this.config.maxSuggestions < this.instances[id].suggestedValues.length
+      ) {
+        console.log(
+          `Using maximum suggestion amount: ${this.config.maxSuggestions}`
+        );
+
+        this.instances[id].suggestedValues = this.instances[
+          id
+        ].suggestedValues.slice(0, this.config.maxSuggestions);
+      }
+
       this.instances[id].suggestedValues.forEach((val, index) => {
-        // Filter out already selected suggestions.
+        const [value, label] = val;
+
+        console.log("selected", value);
+
         if (
           this.instances[id].selectedValues &&
-          this.instances[id].selectedValues.includes(val)
+          this.instances[id].selectedValues.filter((v) => v[0] === value).length
         ) {
+          console.log(`Filter duplicate: ${value}`);
           return;
         }
-        const [value, label] = val;
+
         const button = document.createElement("button");
         button.classList.add(`${this.NAMESPACE}__suggestion`);
         button.innerHTML = label;
@@ -413,6 +426,31 @@ class SelectAutosuggest {
   }
 
   /**
+   * Implements the required styles for the defined target.
+   *
+   * @param {HTMLElement} target Implements the style for the current target.
+   */
+  renderTarget(target) {
+    if (!target) {
+      Object.values(this.instances).forEach((instance) =>
+        this.renderTarget(instance.target)
+      );
+
+      return;
+    }
+
+    target.style["position"] = "absolute";
+    target.style["clip"] = "rect(1px, 1px, 1px, 1px)";
+    target.style["overflow"] = "hidden";
+    target.style["height"] = "1px";
+    target.style["width"] = "1px";
+    target.style["word-wrap"] = "normal";
+    target.style["text-transform"] = "initial";
+    target.style["margin-top"] = "-1px";
+    target.style["margin-left"] = "-1px";
+  }
+
+  /**
    * Wraps the selected target element with a container element.
    *
    * @param {HTMLElement} target The HTMLElement that will be wrapped.
@@ -428,8 +466,8 @@ class SelectAutosuggest {
 
     const id = this.filterTargetID(target);
     if (
-      target.parentElement &&
-      target.parentElement ===
+      target.parentNode &&
+      target.parentNode ===
         document.querySelector(
           `.${this.NAMESPACE}__wrapper[data-${this.NAMESPACE}-wrapper-id="${id}"]`
         )
@@ -476,8 +514,8 @@ class SelectAutosuggest {
     const id = this.filterTargetID(target);
 
     if (
-      target.parentElement &&
-      target.parentElement.querySelectorAll(
+      target.parentNode &&
+      target.parentNode.querySelectorAll(
         `.${this.NAMESPACE}__filter[data-${this.NAMESPACE}-filter-id="${id}"]`
       ).length
     ) {
@@ -493,6 +531,16 @@ class SelectAutosuggest {
 
     filter.setAttribute(`data-${this.NAMESPACE}-filter-id`, id);
     filter.classList.add(`${this.NAMESPACE}__filter`);
+    const placeholder = target.getAttribute(
+      `data-${this.NAMESPACE}-placeholder`
+    );
+
+    if (placeholder && placeholder.length) {
+      filter.setAttribute("placeholder", placeholder);
+    } else if (this.config && this.config.placeholder)
+      filter.setAttribute("placeholder", this.config.placeholder);
+    {
+    }
 
     // Render the actual filter input.
     target.parentNode.insertBefore(filter, target.nextSibling);
@@ -521,31 +569,35 @@ class SelectAutosuggest {
     const id = this.filterTargetID(target);
 
     if (
-      target.parentElement &&
-      target.parentElement.querySelectorAll(
+      target.parentNode &&
+      target.parentNode.querySelectorAll(
         `.${this.NAMESPACE}__selection[data-${this.NAMESPACE}-selection-id="${id}"]`
       ).length
     ) {
       console.log("Skipping selection render for target:", target);
 
       return;
-    } else {
-      console.log("Rendering selection:", target);
-
-      // Prepare the filter element.
-      const selections = document.createElement("div");
-
-      selections.setAttribute(`data-${this.NAMESPACE}-selections-id`, id);
-      selections.classList.add(`${this.NAMESPACE}__selections`);
-
-      // Render the actual selections input.
-      target.parentNode.insertBefore(selections, target.nextSibling);
-
-      // Update the subscribed element instance.
-      this.update(id, {
-        selections,
-      });
     }
+
+    if (!this.instances[id].target.hasAttribute("multiple")) {
+      return;
+    }
+
+    console.log("Rendering selection:", target);
+
+    // Prepare the filter element.
+    const selections = document.createElement("div");
+
+    selections.setAttribute(`data-${this.NAMESPACE}-selections-id`, id);
+    selections.classList.add(`${this.NAMESPACE}__selections`);
+
+    // Render the actual selections input.
+    target.parentNode.insertBefore(selections, target.nextSibling);
+
+    // Update the subscribed element instance.
+    this.update(id, {
+      selections,
+    });
   }
 
   /**
@@ -566,8 +618,8 @@ class SelectAutosuggest {
     const id = this.filterTargetID(target);
 
     if (
-      target.parentElement &&
-      target.parentElement.querySelectorAll(
+      target.parentNode &&
+      target.parentNode.querySelectorAll(
         `.${this.NAMESPACE}__suggestions[data-${this.NAMESPACE}-suggestions-id="${id}"]`
       ).length
     ) {
@@ -651,7 +703,27 @@ class SelectAutosuggest {
     const id = this.filterTargetID(target);
 
     const instance = this.instances[id];
-    const tag = `data-${this.NAMESPACE}-cached-value`;
+    const cacheTag = `data-${this.NAMESPACE}-cached-value`;
+    const endpointTag = `data-${this.NAMESPACE}-endpoint`;
+    const configTag = `data-${this.NAMESPACE}-config`;
+    let config = this.config;
+
+    try {
+      const inlineConfig = this.instances[id].target.getAttribute(configTag)
+        ? JSON.parse(this.instances[id].target.getAttribute(configTag))
+        : this.config;
+
+      if (inlineConfig) {
+        console.log(`Using inline config for ${id}...`);
+        config = Object.assign(inlineConfig, this.config);
+      }
+    } catch (exception) {
+      console.log(exception);
+    }
+
+    const endpoint = this.instances[id].target.getAttribute(endpointTag)
+      ? this.instances[id].target.getAttribute(endpointTag)
+      : this.endpoint;
 
     if (instance.onFilter && instance.filter) {
       instance.filter.removeEventListener("change", instance.onFilter);
@@ -674,7 +746,7 @@ class SelectAutosuggest {
         onFilter: (event) => {
           // Prevent a secondary filters that is inherited from other input
           // events.
-          const cachedValue = instance.filter.getAttribute(tag);
+          const cachedValue = instance.filter.getAttribute(cacheTag);
           if (cachedValue && cachedValue === instance.filter.value) {
             return;
           }
@@ -683,30 +755,29 @@ class SelectAutosuggest {
             return;
           }
 
-          if (this.locked) {
-            console.log(`Awaiting previous filter...`);
-            return;
-          }
-
-          this.locked = true;
-
-          //@todo filter suggestions from API endpoint
-          // Define the suggestions with the optional endpoint.
-          const suggestedValues = this.filterValues(
+          this.handleEnpoint(
             id,
-            instance.filter.value,
-            []
+            endpoint,
+            event.target.value,
+            (result, status) => {
+              const suggestedValues = this.filterValues(
+                id,
+                instance.filter.value,
+                result
+              );
+
+              if (suggestedValues) {
+                console.log(
+                  `Updating suggestions for ${id}: ${instance.filter.value}`
+                );
+
+                this.instances[id].suggestedValues = suggestedValues;
+              }
+
+              this.displaySuggestions(id);
+            },
+            config
           );
-
-          if (suggestedValues) {
-            console.log(`Updating suggestions for ${id}`);
-
-            this.instances[id].suggestedValues = suggestedValues;
-          }
-
-          this.displaySuggestions(id);
-
-          this.locked = false;
         },
         onFocus: (event) => {
           if (!event.target.value) {
@@ -750,7 +821,7 @@ class SelectAutosuggest {
 
           // Should delay enought to give enough time to filter.
           this.throttle(id, () => {
-            const cachedValue = instance.filter.getAttribute(tag);
+            const cachedValue = instance.filter.getAttribute(cacheTag);
 
             if (!cachedValue && instance.filter.value) {
               instance.filter.dispatchEvent(new CustomEvent("change"));
@@ -758,7 +829,7 @@ class SelectAutosuggest {
               instance.filter.dispatchEvent(new CustomEvent("change"));
             }
 
-            instance.filter.setAttribute(tag, instance.filter.value);
+            instance.filter.setAttribute(cacheTag, instance.filter.value);
           });
         },
       });
@@ -860,8 +931,12 @@ class SelectAutosuggest {
     // Update the instance target.
     this.updateTarget(this.instances[id].target);
 
-    // Display the selected suggestions
-    this.displaySelections(id);
+    if (this.instances[id].target.hasAttribute("multiple")) {
+      // Display the selected suggestions
+      this.displaySelections(id);
+    } else {
+      this.displaySelection(id);
+    }
 
     // Filter out the selected suggestion.
     this.displaySuggestions(id);
@@ -937,6 +1012,87 @@ class SelectAutosuggest {
     }
 
     return suggestions;
+  }
+
+  /**
+   * Interacts with the defined endpoint and returns the defined result.
+   *
+   * @param {String} endpoint The public path to interact with.
+   */
+  handleEnpoint(id, endpoint, query, handler, config) {
+    if (this.instances[id].preventFilter) {
+      return;
+    }
+
+    this.instances[id].preventFilter = true;
+
+    if (!query || query.length < 2) {
+      this.instances[id].preventFilter = false;
+
+      return handler([]);
+    }
+
+    const request = new XMLHttpRequest();
+
+    const c = config || {};
+    request.open(c.method || "POST", endpoint, true);
+
+    request.onload = function () {
+      if (this.status >= 200 && this.status < 400) {
+        let response;
+
+        try {
+          response = JSON.parse(this.response);
+        } catch (error) {
+          console.log(`Unable to parse response from: ${query}`);
+        }
+
+        console.log("response", response, c.transform);
+
+        if (response) {
+          if (c.transform) {
+            console.log(`Transforming response...`);
+
+            let transformedResponse;
+            try {
+              transformedResponse = c.transform(response);
+            } catch (error) {
+              console.log(`Unable to transform response: ${error}`);
+            }
+
+            if (Array.isArray(transformedResponse)) {
+              return handler(transformedResponse);
+            }
+          } else {
+            return handler(response);
+          }
+        } else {
+          handler([]);
+        }
+      } else {
+        console.log(`Unable to use endpoint: ${this.statusText}`);
+      }
+    };
+
+    request.onloadstart = () => {
+      if (this.instances[id].wrapper) {
+        this.instances[id].wrapper.setAttribute("aria-busy", true);
+      }
+    };
+
+    request.onerror = function () {
+      console.log(`Unable to use endpoint: ${this.statusText}`);
+    };
+
+    request.onloadend = () => {
+      this.instances[id].preventFilter = false;
+
+      if (this.instances[id].wrapper) {
+        // this.instances[id].wrapper.removeAttribute("aria-busy");
+      }
+    };
+
+    request.send();
   }
 
   /**
