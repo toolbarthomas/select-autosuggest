@@ -1,3 +1,5 @@
+// Figure out the issue where an click is handled during the enter within an input element.
+
 class SelectAutosuggest {
   constructor(props) {
     const { delay, endpoint, target, config, NAMESPACE } = props || {};
@@ -286,7 +288,11 @@ class SelectAutosuggest {
         button.addEventListener("click", (event) => {
           event.preventDefault();
 
-          console.log(event, event.target);
+          // Prevent filter from keyboard callbacks.
+          if (this.instances[id].preventUpdate) {
+            this.instances[id].preventUpdate = false;
+            return;
+          }
 
           this.deselect(id, [value, label]);
         });
@@ -408,6 +414,12 @@ class SelectAutosuggest {
 
         button.addEventListener("click", (event) => {
           event.preventDefault();
+
+          // Prevent filter from keyboard callbacks.
+          if (this.instances[id].preventUpdate) {
+            this.instances[id].preventUpdate = false;
+            return;
+          }
 
           this.select(id, index, value);
         });
@@ -919,17 +931,25 @@ class SelectAutosuggest {
             return;
           }
 
-          if (this.instances[id].preventFilter) {
+          if (
+            this.instances[id].preventFilter ||
+            this.instances[id].preventUpdate
+          ) {
             return;
           }
 
-          if (
-            this.instances[id] &&
-            this.instances[id].filter &&
-            !this.instances[id].filter.value
-          ) {
-            console.log("empty");
-          }
+          // if (
+          //   this.instances[id] &&
+          //   this.instances[id].filter &&
+          //   !this.instances[id].filter.value
+          // ) {
+          //   if (
+          //     this.instances[id].target &&
+          //     !this.instances[id].target.hasAttribute("multiple")
+          //   ) {
+          //     console.log("empty");
+          //   }
+          // }
 
           this.handleEnpoint(
             id,
@@ -980,7 +1000,9 @@ class SelectAutosuggest {
         },
         onKeyDown: (event) => {
           if (this.catchKey(event)) {
-            console.log("keydown");
+            if (event.keyCode === 13) {
+              this.instances[id].preventUpdate = true;
+            }
           }
         },
         onKeyUp: (event) => {
@@ -1045,9 +1067,12 @@ class SelectAutosuggest {
       instance.filter.addEventListener("keyup", this.instances[id].onKeyUp);
     }
 
+    // @todo place logic for submits here
     if (instance.form) {
       this.update(id, {
         onSubmit: (event) => {
+          console.log("submit");
+
           if (this.instances[id] && this.instances[id].preventSubmit) {
             console.log("prevent submit");
             event.preventDefault();
@@ -1055,7 +1080,9 @@ class SelectAutosuggest {
         },
       });
 
-      instance.form.addEventListener("submit", this.instances[id].onSubmit);
+      instance.form.addEventListener("submit", () => {
+        this.instances[id].onSubmit;
+      });
     }
   }
 
@@ -1393,11 +1420,13 @@ class SelectAutosuggest {
     };
 
     request.onloadend = () => {
-      this.instances[id].preventFilter = false;
+      setTimeout(() => {
+        this.instances[id].preventFilter = false;
 
-      if (this.instances[id].wrapper) {
-        // this.instances[id].wrapper.removeAttribute("aria-busy");
-      }
+        if (this.instances[id].wrapper) {
+          this.instances[id].wrapper.removeAttribute("aria-busy");
+        }
+      }, 1);
     };
 
     request.send(
