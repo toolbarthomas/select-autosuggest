@@ -317,7 +317,7 @@ class SelectAutosuggest {
       // Keep focus within the selection list.
       if (initialValue) {
         if (list.firstElementChild) {
-          // list.firstElementChild.focus();
+          list.firstElementChild.focus();
         }
       }
     } else {
@@ -454,7 +454,7 @@ class SelectAutosuggest {
         const nextElement = list.children[nextIndex < 1 ? 0 : nextIndex - 1];
 
         if (nextElement) {
-          // nextElement.focus();
+          nextElement.focus();
         }
       }
     } else {
