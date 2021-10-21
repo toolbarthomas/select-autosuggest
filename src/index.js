@@ -289,10 +289,10 @@ class SelectAutosuggest {
           event.preventDefault();
 
           // Prevent filter from keyboard callbacks.
-          if (this.instances[id].preventUpdate) {
-            this.instances[id].preventUpdate = false;
-            return;
-          }
+          // if (this.instances[id].preventUpdate) {
+          //   this.instances[id].preventUpdate = false;
+          //   return;
+          // }
 
           this.deselect(id, [value, label]);
         });
@@ -416,10 +416,10 @@ class SelectAutosuggest {
           event.preventDefault();
 
           // Prevent filter from keyboard callbacks.
-          if (this.instances[id].preventUpdate) {
-            this.instances[id].preventUpdate = false;
-            return;
-          }
+          // if (this.instances[id].preventUpdate) {
+          //   this.instances[id].preventUpdate = false;
+          //   return;
+          // }
 
           this.select(id, index, value);
         });
@@ -932,8 +932,8 @@ class SelectAutosuggest {
           }
 
           if (
-            this.instances[id].preventFilter ||
-            this.instances[id].preventUpdate
+            this.instances[id].preventFilter
+            // this.instances[id].preventUpdate
           ) {
             return;
           }
@@ -1001,7 +1001,8 @@ class SelectAutosuggest {
         onKeyDown: (event) => {
           if (this.catchKey(event)) {
             if (event.keyCode === 13) {
-              this.instances[id].preventUpdate = true;
+              event.preventDefault();
+              // this.instances[id].preventUpdate = true;
             }
           }
         },
