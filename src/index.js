@@ -173,6 +173,8 @@ class SelectAutosuggest {
 
     target.removeAttribute("style");
 
+    target.removeAttribute("tabindex");
+
     // Remove the autosuggest enable flag.
     delete target[this.name];
 
@@ -584,6 +586,8 @@ class SelectAutosuggest {
 
       return;
     }
+
+    target.setAttribute("tabindex", "-1");
 
     target.style["position"] = "absolute";
     target.style["clip"] = "rect(1px, 1px, 1px, 1px)";
