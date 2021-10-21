@@ -1000,6 +1000,7 @@ class SelectAutosuggest {
         },
         onKeyDown: (event) => {
           if (this.catchKey(event)) {
+            // Prevents the submit event inherited from the filter.
             if (event.keyCode === 13) {
               event.preventDefault();
               // this.instances[id].preventUpdate = true;
