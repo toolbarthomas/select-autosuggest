@@ -1,0 +1,121 @@
+$select-autosuggest-gutter: 0.5rem !default;
+$select-autosuggest-padding: 0.75rem !default;
+$select-autosuggest-suggestions-background-color: #f8f8f8 !default;
+
+$select-autosuggest-filter-padding: 0.5rem 0.75rem !default;
+$select-autosuggest-filter-background-color: #fff !default;
+$select-autosuggest-filter-border-radius: 0.25rem !default;
+$select-autosuggest-filter-border: solid 0.125rem #b0bec5 !default;
+
+$select-autosuggest-selection-padding: 0.5rem 0.75rem !default;
+$select-autosuggest-selection-background-color: #b0bec5 !default;
+$select-autosuggest-selection-border-radius: 5rem !default;
+
+$select-autosuggest-suggestion-padding: 0.5rem 0.75rem !default;
+$select-autosuggest-suggestion-background-color: #eeeeee !default;
+$select-autosuggest-suggestion-border-radius: 5rem !default;
+
+$select-autosuggest-suggestions-padding: 1rem !default;
+$select-autosuggest-suggestions-border-radius: 0.5rem !default;
+$select-autosuggest-suggestions-box-shadow: 0 1.5rem 4rem 0 rgb(#000000, 0.22), 0 0.25rem 0.8rem 0 rgb(#000000, 0.18);
+
+$select-autosuggest-z-index: 300;
+
+/**
+  * Filters outs properties without values.
+  */
+@mixin select_autosuggest_assign_property($property, $value) {
+  @if $property and $value {
+    #{$property}: $value;
+  }
+}
+
+.select-autosuggest {
+  $node: &;
+
+  &-wrapper {
+    position: relative;
+    padding-bottom: $select-autosuggest-gutter;
+    margin-bottom: -$select-autosuggest-gutter;
+  }
+
+  &__filter {
+    display: block;
+
+    &:not([size]) {
+      width: 100%;
+    }
+
+    @include select_autosuggest_assign_property('padding', $select-autosuggest-filter-padding);
+    @include select_autosuggest_assign_property('background-color', $select-autosuggest-filter-background-color);
+    @include select_autosuggest_assign_property('border', $select-autosuggest-filter-border);
+    @include select_autosuggest_assign_property('border-radius', $select-autosuggest-filter-border-radius);
+  }
+
+  &__suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: $select-autosuggest-z-index;
+
+    #{$node}-wrapper[aria-collapsed="true"] & {
+      display: none;
+    }
+
+    @include select_autosuggest_assign_property('padding', $select-autosuggest-suggestions-padding);
+    @include select_autosuggest_assign_property('background-color', $select-autosuggest-suggestions-background-color);
+    @include select_autosuggest_assign_property('box-shadow', $select-autosuggest-suggestions-box-shadow);
+    @include select_autosuggest_assign_property('border-radius', $select-autosuggest-suggestions-border-radius);
+  }
+
+  &__selections {
+    &:empty {
+      display: none;
+    }
+
+    margin-bottom: $select-autosuggest-gutter;
+  }
+
+  &__suggestions-list,
+  &__selections-list {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -$select-autosuggest-gutter;
+    margin-bottom: -$select-autosuggest-gutter;
+  }
+
+  &__suggestions-list {
+    & > #{$node}__suggestion {
+      margin-right: $select-autosuggest-gutter;
+      margin-bottom: $select-autosuggest-gutter;
+    }
+  }
+
+  &__selections-list {
+    &>#{$node}__selection {
+      margin-right: $select-autosuggest-gutter;
+      margin-bottom: $select-autosuggest-gutter;
+    }
+  }
+
+  &__suggestion,
+  &__selection {
+    display: block;
+    width: auto;
+    background: transparent;
+    border: none;
+  }
+
+  &__suggestion {
+    @include select_autosuggest_assign_property('padding', $select-autosuggest-suggestion-padding);
+    @include select_autosuggest_assign_property('background-color', $select-autosuggest-suggestion-background-color);
+    @include select_autosuggest_assign_property('border-radius', $select-autosuggest-suggestion-border-radius);
+  }
+
+  &__selection {
+    @include select_autosuggest_assign_property('padding', $select-autosuggest-selection-padding);
+    @include select_autosuggest_assign_property('background-color', $select-autosuggest-selection-background-color);
+    @include select_autosuggest_assign_property('border-radius', $select-autosuggest-selection-border-radius);
+  }
+}

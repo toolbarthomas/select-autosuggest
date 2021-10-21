@@ -62,6 +62,8 @@ class SelectAutosuggest {
 
       this.renderSelections(this.target[i]);
 
+      this.defineForm(this.target[i]);
+
       this.listen(this.target[i]);
 
       // Prevent event stacking.
@@ -72,6 +74,9 @@ class SelectAutosuggest {
       } else {
         this.displaySelection(id);
       }
+
+      // Ensure the suggestions are hidden during the initial load.
+      this.collapse(id);
     }
   }
 
@@ -98,10 +103,13 @@ class SelectAutosuggest {
     }
 
     const {
+      onBlur,
+      onClick,
       onFilter,
       onFocus,
       onKeyDown,
       onKeyUp,
+      onSubmit,
       filter,
       suggestions,
       target,
@@ -109,17 +117,30 @@ class SelectAutosuggest {
     } = this.instances[id];
 
     if (filter) {
-      filter.removeEventListener("change", onFilter);
-      filter.removeEventListener("focus", onFocus);
-      filter.removeEventListener("keydown", onKeyDown);
-      filter.removeEventListener("keyup", onKeyUp);
+      if (onBlur) {
+        filter.removeEventListener("blur", onBlur);
+      }
+
+      if (onFilter) {
+        filter.removeEventListener("change", onFilter);
+      }
+
+      if (onFocus) {
+        filter.removeEventListener("focus", onFocus);
+      }
+
+      if (onKeyDown) {
+        filter.removeEventListener("keydown", onKeyDown);
+      }
+
+      if (onKeyUp) {
+        filter.removeEventListener("keyup", onKeyUp);
+      }
     }
 
-    // Remove the rendered filter.
-    filter.remove();
-
-    // Remove the rendered suggestions
-    suggestions.remove();
+    if (onClick) {
+      document.removeEventListener("click", onClick);
+    }
 
     // Move the actual target outside the rendered wrapper before we remove it.
     if (wrapper && wrapper.contains(target)) {
@@ -147,6 +168,8 @@ class SelectAutosuggest {
       // changed.
       target.dispatchEvent(new CustomEvent("change"));
     });
+
+    target.removeAttribute("style");
 
     // Remove the autosuggest enable flag.
     delete target[this.name];
@@ -229,8 +252,9 @@ class SelectAutosuggest {
    * Displays the result from the filter field.
    *
    * @param {String} id Publishes the result for the selected instance id.
+   * @param {String} initialValue Use initial value to focus the next selection.
    */
-  displaySelections(id) {
+  displaySelections(id, initialValue) {
     if (!this.instances[id]) {
       console.log(
         `Unable to display selections for non-existing instance: ${id}`
@@ -246,24 +270,50 @@ class SelectAutosuggest {
       const fragment = document.createDocumentFragment();
 
       this.instances[id].selectedValues.forEach((v, index) => {
+        if (!v) {
+          return;
+        }
+
         const [value, label] = v;
         const button = document.createElement("button");
+
         button.classList.add(`${this.NAMESPACE}__selection`);
         button.innerHTML = label;
         const tag = `data-${this.NAMESPACE}-value`;
         button.setAttribute(tag, value);
 
+        // @todo figure out click from enter on submit
         button.addEventListener("click", (event) => {
           event.preventDefault();
+
+          console.log(event, event.target);
 
           this.deselect(id, [value, label]);
         });
 
+        // Assign the Blur collapse logic for the new selection.
+        if (this.instances[id].onBlur) {
+          button.addEventListener("blur", (event) =>
+            this.instances[id].onBlur(event)
+          );
+        }
+
         fragment.appendChild(button);
       });
 
+      const list = document.createElement("div");
+      list.classList.add(`${this.NAMESPACE}__selections-list`);
+      list.appendChild(fragment);
+
       this.instances[id].selections.innerHTML = "";
-      this.instances[id].selections.appendChild(fragment);
+      this.instances[id].selections.appendChild(list);
+
+      // Keep focus within the selection list.
+      if (initialValue) {
+        if (list.firstElementChild) {
+          // list.firstElementChild.focus();
+        }
+      }
     } else {
       this.instances[id].selections.innerHTML = "";
     }
@@ -299,19 +349,27 @@ class SelectAutosuggest {
    * Displays the result from the filter field.
    *
    * @param {String} id Publishes the result for the selected instance id.
+   * @param {String} initialValue Use initial value to focus the next suggestion.
    */
-  displaySuggestions(id) {
+  displaySuggestions(id, initialValue) {
+    this.validateCollapse(id);
+
     if (!this.instances[id]) {
       console.log(`Unable to publish non-existing instance: ${id}`);
 
       return;
     }
+    // Use the nextIndex to focus the next suggestion.
+    let nextIndex;
 
     if (
       this.instances[id].suggestedValues &&
       this.instances[id].suggestedValues.length
     ) {
       const fragment = document.createDocumentFragment();
+      const list = document.createElement("div");
+
+      list.classList.add(`${this.NAMESPACE}__suggestions-list`);
 
       // Define the max amount of results.
       if (
@@ -331,6 +389,10 @@ class SelectAutosuggest {
       this.instances[id].suggestedValues.forEach((val, index) => {
         const [value, label] = val;
 
+        if (value === initialValue) {
+          nextIndex = index;
+        }
+
         // Filter out the already selected suggestions.
         if (
           this.instances[id].selectedValues &&
@@ -347,16 +409,46 @@ class SelectAutosuggest {
         button.addEventListener("click", (event) => {
           event.preventDefault();
 
-          this.select(id, index);
+          this.select(id, index, value);
         });
+
+        // Assign the Blur collapse logic for the new selection.
+        if (this.instances[id].onBlur) {
+          button.addEventListener("blur", (event) =>
+            this.instances[id].onBlur(event)
+          );
+        }
 
         fragment.appendChild(button);
       });
 
+      list.appendChild(fragment);
+
       this.instances[id].suggestions.innerHTML = "";
-      this.instances[id].suggestions.appendChild(fragment);
+      this.instances[id].suggestions.appendChild(list);
+
+      if (!list.children.length) {
+        this.collapse(id);
+      } else {
+        this.expand(id);
+      }
+
+      // Keep focus within the suggestion list.
+      if (nextIndex != null) {
+        if (nextIndex > list.children.length) {
+          nextIndex = list.children.length - 1;
+        }
+
+        const nextElement = list.children[nextIndex < 1 ? 0 : nextIndex - 1];
+
+        if (nextElement) {
+          // nextElement.focus();
+        }
+      }
     } else {
       this.instances[id].suggestions.innerHTML = "";
+
+      this.collapse(id);
     }
   }
 
@@ -370,7 +462,10 @@ class SelectAutosuggest {
   update(id, proposal) {
     // Ensure the accepted properties are only inherited.
     const {
+      form,
       filter,
+      onBlur,
+      onClick,
       onFilter,
       onFocus,
       onKeyDown,
@@ -380,8 +475,21 @@ class SelectAutosuggest {
       wrapper,
     } = proposal;
     const commit = {};
+
+    if (form) {
+      commit.form = form;
+    }
+
     if (filter) {
       commit.filter = filter;
+    }
+
+    if (onBlur) {
+      commit.onBlur = onBlur;
+    }
+
+    if (onClick) {
+      commit.onClick = onClick;
     }
 
     if (onFilter) {
@@ -419,6 +527,36 @@ class SelectAutosuggest {
 
       console.log("Instance updated:", this.instances[id]);
     }
+  }
+
+  /**
+   * Defines the form element for the given target.
+   * @param {HTMLElement} target Defines the form from the selected element.
+   */
+  defineForm(target) {
+    if (!target) {
+      Object.values(this.instances).forEach((instance) =>
+        this.defineForm(instance.target)
+      );
+
+      return;
+    }
+
+    const id = this.filterTargetID(target);
+
+    // @todo should be form from target instead.
+    const form = document.querySelector("form");
+
+    if (!form) {
+      return;
+    }
+
+    console.log(`Valid form parent found for: ${id}`);
+
+    // Update the subscribed element instance.
+    this.update(id, {
+      form,
+    });
   }
 
   /**
@@ -465,7 +603,7 @@ class SelectAutosuggest {
       target.parentNode &&
       target.parentNode ===
         document.querySelector(
-          `.${this.NAMESPACE}__wrapper[data-${this.NAMESPACE}-wrapper-id="${id}"]`
+          `.${this.NAMESPACE}-wrapper[data-${this.NAMESPACE}-wrapper-id="${id}"]`
         )
     ) {
       console.log("Skipping wrapper render for target:", target);
@@ -478,7 +616,7 @@ class SelectAutosuggest {
     const wrapper = document.createElement("div");
 
     wrapper.setAttribute(`data-${this.NAMESPACE}-wrapper-id`, id);
-    wrapper.classList.add(`${this.NAMESPACE}__wrapper`);
+    wrapper.classList.add(`${this.NAMESPACE}-wrapper`);
 
     // Insert the wrapper before the target element.
     target.parentNode.insertBefore(wrapper, target.nextSibling);
@@ -524,6 +662,8 @@ class SelectAutosuggest {
 
     // Prepare the filter element.
     const filter = document.createElement("input");
+    const wrapper = document.createElement("div");
+    wrapper.classList.add(`${this.NAMESPACE}__filter-wrapper`);
 
     filter.setAttribute(`data-${this.NAMESPACE}-filter-id`, id);
     filter.classList.add(`${this.NAMESPACE}__filter`);
@@ -533,13 +673,14 @@ class SelectAutosuggest {
 
     if (placeholder && placeholder.length) {
       filter.setAttribute("placeholder", placeholder);
-    } else if (this.config && this.config.placeholder)
+    } else if (this.config && this.config.placeholder) {
       filter.setAttribute("placeholder", this.config.placeholder);
-    {
     }
 
+    wrapper.appendChild(filter);
+
     // Render the actual filter input.
-    target.parentNode.insertBefore(filter, target.nextSibling);
+    target.parentNode.insertBefore(wrapper, target.nextSibling);
 
     // Update the subscribed element instance.
     this.update(id, {
@@ -666,6 +807,9 @@ class SelectAutosuggest {
     }
 
     this.instances[id].selectedValues.forEach((v) => {
+      if (!v) {
+        return;
+      }
       const [value, label] = v;
       const option = document.createElement("option");
 
@@ -707,6 +851,10 @@ class SelectAutosuggest {
       ? this.instances[id].target.getAttribute(endpointTag)
       : this.endpoint;
 
+    if (instance.onBlur && instance.filter) {
+      instance.filter.removeEventListener("blur", instance.onBlur);
+    }
+
     if (instance.onFilter && instance.filter) {
       instance.filter.removeEventListener("change", instance.onFilter);
     }
@@ -723,8 +871,46 @@ class SelectAutosuggest {
       instance.filter.removeEventListener("keyup", instance.onKeyUp);
     }
 
+    if (instance.onClick) {
+      document.removeEventListener("click", instance.onClick);
+    }
+
+    if (instance.onSubmit && instance.form) {
+      instance.form.removeEventListener("submit", instance.onSubmit);
+    }
+
     if (instance.filter) {
       this.update(id, {
+        onClick: (event) => {
+          const { target } = event;
+
+          if (!target) {
+            return;
+          }
+
+          if (
+            target === instance.wrapper ||
+            instance.wrapper.contains(target)
+          ) {
+            if (instance.suggestedValues && instance.suggestedValues.length) {
+              console.log("from here");
+              this.displaySuggestions(id);
+            }
+          } else {
+            // Prevent collapse for removed autosuggest elements.
+            if (
+              document.contains(target) &&
+              instance.wrapper !== target &&
+              !instance.wrapper.contains(target)
+            ) {
+              this.instances[id].preventCollapse = false;
+            }
+
+            if (!this.instances[id].preventCollapse) {
+              this.collapse(id);
+            }
+          }
+        },
         onFilter: (event) => {
           // Prevent a secondary filters that is inherited from other input
           // events.
@@ -735,6 +921,14 @@ class SelectAutosuggest {
 
           if (this.instances[id].preventFilter) {
             return;
+          }
+
+          if (
+            this.instances[id] &&
+            this.instances[id].filter &&
+            !this.instances[id].filter.value
+          ) {
+            console.log("empty");
           }
 
           this.handleEnpoint(
@@ -769,7 +963,19 @@ class SelectAutosuggest {
 
             this.instances[id].suggestedValues = suggestedValues;
 
+            console.log("from heres");
             this.displaySuggestions(id);
+          }
+        },
+        onBlur: (event) => {
+          const { relatedTarget } = event;
+
+          if (
+            relatedTarget &&
+            relatedTarget !== instance.wrapper &&
+            !instance.wrapper.contains(relatedTarget)
+          ) {
+            this.collapse(id);
           }
         },
         onKeyDown: (event) => {
@@ -783,16 +989,26 @@ class SelectAutosuggest {
           }
 
           if (!this.catchKey(event)) {
+            console.log("Block keyup");
             return;
           }
 
+          if (
+            !instance.filter.value.length &&
+            instance.selectedValues &&
+            instance.selectedValues.length &&
+            !instance.target.hasAttribute("multiple")
+          ) {
+            this.deselect(id);
+          }
+
           if (event.keyCode === 13) {
+            // Prevent accidental form submits.
+            event.preventDefault();
+
             if (!instance.filter.value.length) {
               return;
             }
-
-            // Prevent accidental form submits.
-            event.preventDefault();
 
             console.log(`Handle select from return: ${id}`);
 
@@ -801,7 +1017,7 @@ class SelectAutosuggest {
             return this.select(id);
           }
 
-          // Should delay enought to give enough time to filter.
+          // Should delay enough to give enough time to filter.
           this.throttle(id, () => {
             const cachedValue = instance.filter.getAttribute(cacheTag);
 
@@ -816,13 +1032,30 @@ class SelectAutosuggest {
         },
       });
 
+      document.addEventListener("click", this.instances[id].onClick);
+
       instance.filter.addEventListener("change", this.instances[id].onFilter);
 
       instance.filter.addEventListener("focus", this.instances[id].onFocus);
 
+      instance.filter.addEventListener("blur", this.instances[id].onBlur);
+
       instance.filter.addEventListener("keydown", this.instances[id].onKeyDown);
 
       instance.filter.addEventListener("keyup", this.instances[id].onKeyUp);
+    }
+
+    if (instance.form) {
+      this.update(id, {
+        onSubmit: (event) => {
+          if (this.instances[id] && this.instances[id].preventSubmit) {
+            console.log("prevent submit");
+            event.preventDefault();
+          }
+        },
+      });
+
+      instance.form.addEventListener("submit", this.instances[id].onSubmit);
     }
   }
 
@@ -831,8 +1064,9 @@ class SelectAutosuggest {
    *
    * @param {String} id Selects from the subscribed id.
    * @param {Number} index Select the defined index or the first.
+   * @param {String} initialValue Reference as value for the selected index.
    */
-  select(id, index) {
+  select(id, index, initialValue) {
     if (
       this.instances[id] &&
       Array.isArray(this.instances[id].suggestedValues)
@@ -842,11 +1076,11 @@ class SelectAutosuggest {
         : this.instances[id].suggestedValues[0];
 
       if (this.instances[id].target.hasAttribute("multiple")) {
-        this.instances[id].preventFilter = true;
+        // this.instances[id].preventFilter = true;
 
-        this.instances[id].filter.value = "";
+        // this.instances[id].filter.value = "";
 
-        this.instances[id].preventFilter = false;
+        // this.instances[id].preventFilter = false;
 
         if (!Array.isArray(this.instances[id].selectedValues)) {
           this.instances[id].selectedValues = [];
@@ -875,7 +1109,7 @@ class SelectAutosuggest {
     }
 
     // Filter out the selected suggestion.
-    this.displaySuggestions(id);
+    this.displaySuggestions(id, initialValue);
   }
 
   /**
@@ -915,13 +1149,88 @@ class SelectAutosuggest {
 
     if (this.instances[id].target.hasAttribute("multiple")) {
       // Display the selected suggestions
-      this.displaySelections(id);
+      this.displaySelections(id, selection[0]);
     } else {
       this.displaySelection(id);
     }
 
     // Filter out the selected suggestion.
     this.displaySuggestions(id);
+  }
+
+  validateCollapse(id) {
+    if (!id || !this.instances[id]) {
+      console.log(`Unable to validate for non-existing id: ${id}`);
+
+      return;
+    }
+
+    const leftover = [];
+
+    const list = this.instances[id].suggestedValues.filter((v) => {
+      if (!v) {
+        return null;
+      }
+
+      const [value] = v;
+
+      if (!this.instances[id] || !this.instances[id].selectedValues) {
+        return;
+      }
+
+      return (
+        this.instances[id].selectedValues.filter((vv) => {
+          return vv[0].toLowerCase() === value.toLowerCase();
+        }).length === 0
+      );
+    });
+
+    if (list.length) {
+      this.instances[id].preventCollapse = true;
+    } else {
+      this.instances[id].preventCollapse = false;
+    }
+
+    // Should compare the suggested with the selected values.
+    // Should mark the preventCollapse flag in order to fix hiding content.
+  }
+
+  /**
+   * Defines the current element as expanded.
+   *
+   * @param {String} id Expands the selected element;
+   */
+  expand(id) {
+    if (!id || !this.instances[id]) {
+      console.log(`Unable to expand for non-existing id: ${id}`);
+      return;
+    }
+
+    if (
+      !this.instances[id].suggestedValues ||
+      !this.instances[id].suggestedValues.length
+    ) {
+      return;
+    }
+
+    if (this.instances[id].wrapper) {
+      this.instances[id].wrapper.removeAttribute("aria-collapsed");
+    }
+  }
+
+  /**
+   * Defines the current element as collapsed.
+   *
+   * @param {String} id Collapses the selected element;
+   */
+  collapse(id) {
+    if (!id || !this.instances[id]) {
+      console.log(`Unable to collapse for non-existing id: ${id}`);
+    }
+
+    if (this.instances[id].wrapper) {
+      this.instances[id].wrapper.setAttribute("aria-collapsed", true);
+    }
   }
 
   /**
@@ -1047,8 +1356,6 @@ class SelectAutosuggest {
         } catch (error) {
           console.log(`Unable to parse response from: ${query}`);
         }
-
-        console.log("response", response, c.transform);
 
         if (response) {
           if (c.transform) {

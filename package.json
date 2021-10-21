@@ -4,6 +4,7 @@
   "description": "Multiselect with API endpoint features",
   "main": "src/index.js",
   "scripts": {
+    "build": "sass src/index.scss ./src/index.css",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/toolbarthomas/select-autosuggest/issues"
   },
-  "homepage": "https://github.com/toolbarthomas/select-autosuggest#readme"
+  "homepage": "https://github.com/toolbarthomas/select-autosuggest#readme",
+  "devDependencies": {
+    "sass": "^1.43.2"
+  }
 }
