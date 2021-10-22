@@ -246,8 +246,13 @@ class SelectAutosuggest {
     // Prevent Focus events for the selector.
     target.setAttribute("tabindex", "-1");
 
-    this.instances[id]["target"] = target;
-    this.instances[id]["initialValue"] = initialValue;
+    this.update(id, {
+      target,
+      initialValue,
+    });
+
+    // this.instances[id]["target"] = target;
+    // this.instances[id]["initialValue"] = initialValue;
 
     return id;
   }
@@ -290,6 +295,7 @@ class SelectAutosuggest {
         button.addEventListener("click", (event) => {
           event.preventDefault();
 
+          // @todo Probably not needed anymore
           // Prevent filter from keyboard callbacks.
           // if (this.instances[id].preventUpdate) {
           //   this.instances[id].preventUpdate = false;
@@ -346,11 +352,19 @@ class SelectAutosuggest {
       return;
     }
 
-    this.instances[id].preventFilter = true;
+    // this.instances[id].preventFilter = true;
+
+    this.update(id, {
+      preventFilter: true,
+    });
 
     this.instances[id].filter.value = this.instances[id].selectedValues[0][1];
 
-    this.instances[id].preventFilter = false;
+    this.update(id, {
+      preventFilter: false,
+    });
+
+    // this.instances[id].preventFilter = false;
   }
 
   /**
@@ -389,9 +403,16 @@ class SelectAutosuggest {
           `Using maximum suggestion amount: ${this.config.maxSuggestions}`
         );
 
-        this.instances[id].suggestedValues = this.instances[
-          id
-        ].suggestedValues.slice(0, this.config.maxSuggestions);
+        this.update(id, {
+          suggestedValues: this.instances[id].suggestedValues.slice(
+            0,
+            this.config.maxSuggestions
+          ),
+        });
+
+        // this.instances[id].suggestedValues = this.instances[
+        //   id
+        // ].suggestedValues.slice(0, this.config.maxSuggestions);
       }
 
       this.instances[id].suggestedValues.forEach((val, index) => {
@@ -417,6 +438,7 @@ class SelectAutosuggest {
         button.addEventListener("click", (event) => {
           event.preventDefault();
 
+          // @todo Probably not needed anymore..
           // Prevent filter from keyboard callbacks.
           // if (this.instances[id].preventUpdate) {
           //   this.instances[id].preventUpdate = false;
@@ -484,9 +506,17 @@ class SelectAutosuggest {
       onFocus,
       onKeyDown,
       onKeyUp,
+      preventCollapse,
+      preventFilter,
+      preventSubmit,
+      preventUpdate,
       selections,
+      selectedValues,
       suggestions,
+      suggestedValues,
       wrapper,
+      initialValue,
+      target,
     } = proposal;
     const commit = {};
 
@@ -537,9 +567,41 @@ class SelectAutosuggest {
     if (this.instances[id] instanceof Object) {
       console.log("Updating subscribed instance:", commit);
 
+      // Only define the allowed properties.
       this.instances[id] = Object.assign(this.instances[id], commit);
 
-      console.log("Instance updated:", this.instances[id]);
+      // Ensure the following properties can be updated.
+      if (preventCollapse != null) {
+        this.instances[id].preventCollapse = preventCollapse;
+      }
+
+      if (preventFilter != null) {
+        this.instances[id].preventFilter = preventFilter;
+      }
+
+      if (preventSubmit != null) {
+        this.instances[id].preventSubmit = preventSubmit;
+      }
+
+      if (preventUpdate != null) {
+        this.instances[id].preventUpdate = preventUpdate;
+      }
+
+      if (target != null) {
+        this.instances[id].target = target;
+      }
+
+      if (initialValue != null) {
+        this.instances[id].initialValue = initialValue;
+      }
+
+      if (selectedValues != null) {
+        this.instances[id].selectedValues = selectedValues;
+      }
+
+      if (suggestedValues != null) {
+        this.instances[id].suggestedValues = suggestedValues;
+      }
     }
   }
 
@@ -919,7 +981,10 @@ class SelectAutosuggest {
               instance.wrapper !== target &&
               !instance.wrapper.contains(target)
             ) {
-              this.instances[id].preventCollapse = false;
+              this.update(id, {
+                preventCollapse: false,
+              });
+              // this.instances[id].preventCollapse = false;
             }
 
             if (!this.instances[id].preventCollapse) {
@@ -971,7 +1036,10 @@ class SelectAutosuggest {
                   `Updating suggestions for ${id}: ${instance.filter.value}`
                 );
 
-                this.instances[id].suggestedValues = suggestedValues;
+                // this.instances[id].suggestedValues = suggestedValues;
+                this.update(id, {
+                  suggestedValues,
+                });
               }
 
               this.displaySuggestions(id);
@@ -985,7 +1053,10 @@ class SelectAutosuggest {
             // Ignore the endpoint suggestions during the initial focus.
             const suggestedValues = this.filterValues(id, "", []);
 
-            this.instances[id].suggestedValues = suggestedValues;
+            // this.instances[id].suggestedValues = suggestedValues;
+            this.update(id, {
+              suggestedValues,
+            });
 
             console.log("from heres");
             this.displaySuggestions(id);
@@ -1116,18 +1187,32 @@ class SelectAutosuggest {
         // this.instances[id].preventFilter = false;
 
         if (!Array.isArray(this.instances[id].selectedValues)) {
-          this.instances[id].selectedValues = [];
+          // this.instances[id].selectedValues = [];
+          this.update(id, {
+            selectedValues: [],
+          });
         }
 
         if (!this.instances[id].selectedValues.includes(selectedValue)) {
-          this.instances[id].selectedValues = [selectedValue].concat(
-            this.instances[id].selectedValues
-          );
+          this.update(id, {
+            selectedValues: [selectedValue].concat(
+              this.instances[id].selectedValues
+            ),
+          });
+          // this.instances[id].selectedValues = [selectedValue].concat(
+          //   this.instances[id].selectedValues
+          // );
         } else {
-          this.instances[id].selectedValues = this.instances[id].selectedValues;
+          this.update(id, {
+            selectedValues: this.instances[id].selectedValues,
+          });
+          // this.instances[id].selectedValues = this.instances[id].selectedValues;
         }
       } else {
-        this.instances[id].selectedValues = [selectedValue];
+        this.update(id, {
+          selectedValues: [selectedValue],
+        });
+        // this.instances[id].selectedValues = [selectedValue];
       }
     }
 
@@ -1175,7 +1260,10 @@ class SelectAutosuggest {
 
     console.log(`Removed selection: ${selection[1]} => ${selection[0]}`);
 
-    this.instances[id].selectedValues = commit;
+    // this.instances[id].selectedValues = commit;
+    this.update(id, {
+      selectedValues: commit,
+    });
 
     // Update the instance target.
     this.updateTarget(this.instances[id].target);
@@ -1219,9 +1307,15 @@ class SelectAutosuggest {
     });
 
     if (list.length) {
-      this.instances[id].preventCollapse = true;
+      // this.instances[id].preventCollapse = true;
+      this.update(id, {
+        preventCollapse: true,
+      });
     } else {
-      this.instances[id].preventCollapse = false;
+      // this.instances[id].preventCollapse = false;
+      this.update(id, {
+        preventCollapse: false,
+      });
     }
 
     // Should compare the suggested with the selected values.
@@ -1348,10 +1442,16 @@ class SelectAutosuggest {
       return;
     }
 
-    this.instances[id].preventFilter = true;
+    // this.instances[id].preventFilter = true;
+    this.update(id, {
+      preventFilter: true,
+    });
 
     if (!query || query.length < 2) {
-      this.instances[id].preventFilter = false;
+      // this.instances[id].preventFilter = false;
+      this.update(id, {
+        preventFilter: false,
+      });
 
       return handler([]);
     }
@@ -1427,7 +1527,10 @@ class SelectAutosuggest {
 
     request.onloadend = () => {
       setTimeout(() => {
-        this.instances[id].preventFilter = false;
+        // this.instances[id].preventFilter = false;
+        this.update(id, {
+          preventFilter: false,
+        });
 
         if (this.instances[id].wrapper) {
           this.instances[id].wrapper.removeAttribute("aria-busy");
