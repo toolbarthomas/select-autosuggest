@@ -17,9 +17,22 @@
       window.addEventListener('DOMContentLoaded', (event) => {
         if (SelectAutosuggest) {
           const select = new SelectAutosuggest({
-            target: '.select-autosuggest',
+            target: '#foo',
             config: {
-              placeholder: 'Search by keyword',
+              placeholder: '',
+              parameters: {
+                q: 'foo'
+              },
+              maxSuggestions: 10,
+              method: 'GET',
+              transform: (result) => Object.keys(result).map(k => [encodeURIComponent(k), k])
+            },
+          });
+
+          const select2 = new SelectAutosuggest({
+            target: '#bar',
+            config: {
+              placeholder: '',
               parameters: {
                 q: 'foo'
               },
@@ -30,6 +43,7 @@
           });
 
           select.start();
+          select2.start();
         }
       })
     </script>
@@ -42,7 +56,7 @@
 
       <form>
         <h5>Initial setup</h5>
-        <select id="colors" class="select-autosuggest" data-select-autosuggest-endpoint="https://raw.githubusercontent.com/mdn/content/main/files/en-us/_wikihistory.json" data-select-autosuggest-placeholder="Insert some words">
+        <select id="foo" class="select-autosuggest" data-select-autosuggest-endpoint="https://raw.githubusercontent.com/mdn/content/main/files/en-us/_wikihistory.json" data-select-autosuggest-placeholder="Insert some words">
           <option value="1">Red</option>
           <option value="2">Green</option>
           <option value="3">Blue</option>
@@ -53,7 +67,7 @@
         <br/>
 
         <h5>Multiple select</h5>
-        <select multiple class="select-autosuggest" data-select-autosuggest-endpoint="https://raw.githubusercontent.com/mdn/content/main/files/en-us/_wikihistory.json">
+        <select id="bar" multiple class="select-autosuggest" data-select-autosuggest-endpoint="https://raw.githubusercontent.com/mdn/content/main/files/en-us/_wikihistory.json">
           <option selected value="foo">FOO</option>
           <option value="bar">BAR</option>
           <option value="baz">BAZ</option>

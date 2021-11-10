@@ -43,7 +43,7 @@ class SelectAutosuggest {
    */
   start() {
     if (!this.target || !this.target.length) {
-      console.log(`Unable to start ${this.name}, no elements have been found`);
+      this.error(`Unable to start ${this.name}, no elements have been found`);
       return;
     }
 
@@ -99,7 +99,7 @@ class SelectAutosuggest {
     }
 
     if (!this.instances[id]) {
-      console.log(`Unable to destroy non-existing instance: ${id}`);
+      this.error(`Unable to destroy non-existing instance: ${id}`);
 
       return;
     }
@@ -195,10 +195,8 @@ class SelectAutosuggest {
       ).length === 0;
 
     if (!isUnique) {
-      console.log(
-        `Unable to subscribe element as select autosuggest instance.`
-      );
-      console.log("Target already exists:", target);
+      this.error(`Unable to subscribe element as select autosuggest instance.`);
+      this.error("Target already exists:", target);
       return;
     }
 
@@ -208,13 +206,8 @@ class SelectAutosuggest {
     if (!id || document.querySelector(`#${id}`) !== target) {
       id = this.generateID();
 
-      console.log(`Unable to find existing ID, creating new ID: ${id}`);
+      this.error(`Unable to find existing ID, creating new ID: ${id}`);
     }
-
-    console.log(
-      `Element subscribed within the select autosuggest instance`,
-      target
-    );
 
     this.instances[id] = {
       selectedValues: [],
@@ -223,8 +216,6 @@ class SelectAutosuggest {
     const initialValue = [];
     const option = target.querySelectorAll("option");
     if (option.length) {
-      console.log(`Defining initial values for ${id}`);
-
       for (let i = 0; i < option.length; i += 1) {
         const value = option[i].getAttribute("value") || option[i].innerText;
         const label = option[i].innerText || option[i].getAttribute("value");
@@ -265,7 +256,7 @@ class SelectAutosuggest {
    */
   displaySelections(id, initialValue) {
     if (!this.instances[id]) {
-      console.log(
+      this.error(
         `Unable to display selections for non-existing instance: ${id}`
       );
 
@@ -340,7 +331,7 @@ class SelectAutosuggest {
    */
   displaySelection(id) {
     if (!this.instances[id] || !this.instances[id].filter) {
-      console.log("Unable to display selection within non-existing filter..");
+      this.error("Unable to display selection within non-existing filter..");
 
       return;
     }
@@ -377,7 +368,7 @@ class SelectAutosuggest {
     this.validateCollapse(id);
 
     if (!this.instances[id]) {
-      console.log(`Unable to publish non-existing instance: ${id}`);
+      this.error(`Unable to publish non-existing instance: ${id}`);
 
       return;
     }
@@ -399,7 +390,7 @@ class SelectAutosuggest {
         !isNaN(parseFloat(this.config.maxSuggestions)) &&
         this.config.maxSuggestions < this.instances[id].suggestedValues.length
       ) {
-        console.log(
+        this.log(
           `Using maximum suggestion amount: ${this.config.maxSuggestions}`
         );
 
@@ -416,6 +407,10 @@ class SelectAutosuggest {
       }
 
       this.instances[id].suggestedValues.forEach((val, index) => {
+        if (!Array.isArray(val)) {
+          return;
+        }
+
         const [value, label] = val;
 
         if (value === initialValue) {
@@ -565,10 +560,12 @@ class SelectAutosuggest {
     }
 
     if (this.instances[id] instanceof Object) {
-      console.log("Updating subscribed instance:", commit);
+      if (Object.values(commit).length) {
+        this.log(`Updating instance ${id}:`, Object.keys(commit).join(", "));
 
-      // Only define the allowed properties.
-      this.instances[id] = Object.assign(this.instances[id], commit);
+        // Only define the allowed properties.
+        this.instances[id] = Object.assign(this.instances[id], commit);
+      }
 
       // Ensure the following properties can be updated.
       if (preventCollapse != null) {
@@ -627,8 +624,6 @@ class SelectAutosuggest {
       return;
     }
 
-    console.log(`Valid form parent found for: ${id}`);
-
     // Update the subscribed element instance.
     this.update(id, {
       form,
@@ -684,11 +679,9 @@ class SelectAutosuggest {
           `.${this.NAMESPACE}-wrapper[data-${this.NAMESPACE}-wrapper-id="${id}"]`
         )
     ) {
-      console.log("Skipping wrapper render for target:", target);
-
+      this.log("Skipping wrapper render for target:", target);
       return;
     }
-    console.log("Rendering wrapper for target:", target);
 
     // Prepare the filter element.
     const wrapper = document.createElement("div");
@@ -731,12 +724,10 @@ class SelectAutosuggest {
         `.${this.NAMESPACE}__filter[data-${this.NAMESPACE}-filter-id="${id}"]`
       ).length
     ) {
-      console.log("Skipping filter render for target:", target);
+      this.log("Skipping filter render for target:", target);
 
       return;
     }
-
-    console.log("Rendering filter:", target);
 
     // Prepare the filter element.
     const filter = document.createElement("input");
@@ -789,7 +780,7 @@ class SelectAutosuggest {
         `.${this.NAMESPACE}__selection[data-${this.NAMESPACE}-selection-id="${id}"]`
       ).length
     ) {
-      console.log("Skipping selection render for target:", target);
+      this.log("Skipping selection render for target:", target);
 
       return;
     }
@@ -797,8 +788,6 @@ class SelectAutosuggest {
     if (!this.instances[id].target.hasAttribute("multiple")) {
       return;
     }
-
-    console.log("Rendering selection:", target);
 
     // Prepare the filter element.
     const selections = document.createElement("div");
@@ -838,12 +827,10 @@ class SelectAutosuggest {
         `.${this.NAMESPACE}__suggestions[data-${this.NAMESPACE}-suggestions-id="${id}"]`
       ).length
     ) {
-      console.log("Skipping suggestions render for target:", target);
+      this.log("Skipping suggestions render for target:", target);
 
       return;
     } else {
-      console.log("Rendering suggestions:", target);
-
       // Prepare the filter element.
       const suggestions = document.createElement("div");
 
@@ -885,9 +872,10 @@ class SelectAutosuggest {
     }
 
     this.instances[id].selectedValues.forEach((v) => {
-      if (!v) {
+      if (!v || !Array.isArray(v)) {
         return;
       }
+
       const [value, label] = v;
       const option = document.createElement("option");
 
@@ -971,7 +959,6 @@ class SelectAutosuggest {
             instance.wrapper.contains(target)
           ) {
             if (instance.suggestedValues && instance.suggestedValues.length) {
-              console.log("from here");
               this.displaySuggestions(id);
             }
           } else {
@@ -1016,7 +1003,7 @@ class SelectAutosuggest {
           //     this.instances[id].target &&
           //     !this.instances[id].target.hasAttribute("multiple")
           //   ) {
-          //     console.log("empty");
+          //     this.log("empty");
           //   }
           // }
 
@@ -1032,7 +1019,7 @@ class SelectAutosuggest {
               );
 
               if (suggestedValues) {
-                console.log(
+                this.log(
                   `Updating suggestions for ${id}: ${instance.filter.value}`
                 );
 
@@ -1058,7 +1045,6 @@ class SelectAutosuggest {
               suggestedValues,
             });
 
-            console.log("from heres");
             this.displaySuggestions(id);
           }
         },
@@ -1088,7 +1074,7 @@ class SelectAutosuggest {
           }
 
           if (!this.catchKey(event)) {
-            console.log("Block keyup");
+            // this.log("Block keyup");
             return;
           }
 
@@ -1109,7 +1095,7 @@ class SelectAutosuggest {
               return;
             }
 
-            console.log(`Handle select from return: ${id}`);
+            // this.log(`Handle select from return: ${id}`);
 
             instance.filter.dispatchEvent(new CustomEvent("change"));
 
@@ -1148,10 +1134,10 @@ class SelectAutosuggest {
     if (instance.form) {
       this.update(id, {
         onSubmit: (event) => {
-          console.log("submit");
+          // this.log("submit");
 
           if (this.instances[id] && this.instances[id].preventSubmit) {
-            console.log("prevent submit");
+            // this.log("prevent submit");
             event.preventDefault();
           }
         },
@@ -1238,7 +1224,7 @@ class SelectAutosuggest {
    */
   deselect(id, selection) {
     if (!id || !this.instances[id]) {
-      console.log(`Unable to deselect for non-existing id: ${id}`);
+      this.error(`Unable to deselect for non-existing id: ${id}`);
     }
 
     if (!this.instances[id] || !this.instances[id].selectedValues.length) {
@@ -1247,7 +1233,7 @@ class SelectAutosuggest {
 
     // Deselects all values for the defined target.
     if (!Array.isArray(selection)) {
-      console.log(`Removing all selections`);
+      this.log(`Removing all selections`);
 
       return this.instances[id].selectedValues.forEach((selectedValue) =>
         this.deselect(id, selectedValue)
@@ -1258,7 +1244,7 @@ class SelectAutosuggest {
       (selectedValue) => selectedValue[0] !== selection[0]
     );
 
-    console.log(`Removed selection: ${selection[1]} => ${selection[0]}`);
+    this.log(`Removed selection: ${selection[1]} => ${selection[0]}`);
 
     // this.instances[id].selectedValues = commit;
     this.update(id, {
@@ -1281,7 +1267,7 @@ class SelectAutosuggest {
 
   validateCollapse(id) {
     if (!id || !this.instances[id]) {
-      console.log(`Unable to validate for non-existing id: ${id}`);
+      this.error(`Unable to validate for non-existing id: ${id}`);
 
       return;
     }
@@ -1329,7 +1315,7 @@ class SelectAutosuggest {
    */
   expand(id) {
     if (!id || !this.instances[id]) {
-      console.log(`Unable to expand for non-existing id: ${id}`);
+      this.error(`Unable to expand for non-existing id: ${id}`);
       return;
     }
 
@@ -1352,7 +1338,7 @@ class SelectAutosuggest {
    */
   collapse(id) {
     if (!id || !this.instances[id]) {
-      console.log(`Unable to collapse for non-existing id: ${id}`);
+      this.error(`Unable to collapse for non-existing id: ${id}`);
     }
 
     if (this.instances[id].wrapper) {
@@ -1369,7 +1355,7 @@ class SelectAutosuggest {
    */
   throttle(id, handler) {
     if (!this.instances[id]) {
-      console.log(`Unable to throttle non existing instance: ${id}`);
+      this.error(`Unable to throttle non existing instance: ${id}`);
     }
 
     if (this.queue[id]) {
@@ -1409,7 +1395,7 @@ class SelectAutosuggest {
    */
   filterValues(id, query, proposal) {
     if (!this.instances[id]) {
-      console.log(`Unable to filter non exsiting instance: ${id}`);
+      this.error(`Unable to filter non exsiting instance: ${id}`);
     }
 
     let suggestions = this.instances[id].initialValue.concat(
@@ -1487,31 +1473,37 @@ class SelectAutosuggest {
         try {
           response = JSON.parse(this.response);
         } catch (error) {
-          console.log(`Unable to parse response from: ${query}`);
+          this.error(`Unable to parse response from: ${query}`);
         }
 
         if (response) {
           if (c.transform) {
-            console.log(`Transforming response...`);
+            this.log(`Transforming response...`);
 
             let transformedResponse;
             try {
               transformedResponse = c.transform(response);
             } catch (error) {
-              console.log(`Unable to transform response: ${error}`);
+              this.error(`Unable to transform response: ${error}`);
             }
 
             if (Array.isArray(transformedResponse)) {
               return handler(transformedResponse);
+            } else {
+              this.error(
+                "Ignoring custom transform handler, it does return an Array"
+              );
+
+              return handler([response]);
             }
           } else {
-            return handler(response);
+            return handler([response]);
           }
         } else {
           handler([]);
         }
       } else {
-        console.log(`Unable to use endpoint: ${this.statusText}`);
+        this.error(`Unable to use endpoint: ${this.statusText}`);
       }
     };
 
@@ -1522,7 +1514,7 @@ class SelectAutosuggest {
     };
 
     request.onerror = function () {
-      console.log(`Unable to use endpoint: ${this.statusText}`);
+      this.error(`Unable to use endpoint: ${this.statusText}`);
     };
 
     request.onloadend = () => {
@@ -1587,5 +1579,27 @@ class SelectAutosuggest {
     });
 
     return result.length ? `?${result.join("&")}` : "";
+  }
+
+  /**
+   * Console.log alias to ensure browser support.
+   */
+  log(...args) {
+    if (!window.console || !console.log) {
+      return;
+    }
+
+    return console.log(...args);
+  }
+
+  /**
+   * Console.error alias to ensure browser support.
+   */
+  error(...args) {
+    if (!window.console || !this.error) {
+      return;
+    }
+
+    return console.error(...args);
   }
 }
