@@ -2,7 +2,8 @@
 
 class SelectAutosuggest {
   constructor(props) {
-    const { delay, endpoint, target, config, NAMESPACE } = props || {};
+    const { delay, endpoint, target, callback, config, NAMESPACE } =
+      props || {};
 
     // Will be used to prefix all logic for the current instance.
     this.NAMESPACE = NAMESPACE || "select-autosuggest";
@@ -27,14 +28,13 @@ class SelectAutosuggest {
     // XMLHTTPRequest or fetch API's.
     this.config = config;
 
-    /**
-     * Stores the throttled instances.
-     */
+    // Defines the optional callback handlers for the assigned events.
+    this.callback = callback || {};
+
+    // Stores the throttled instances.
     this.queue = {};
 
-    /**
-     * Gives the user some time in miliseconds to use the actual inputs.
-     */
+    // Gives the user some time in miliseconds to use the actual inputs.
     this.delay = delay || 200;
   }
 
@@ -978,6 +978,8 @@ class SelectAutosuggest {
               this.collapse(id);
             }
           }
+
+          this.handleCallback("onClick", id, target);
         },
         onFilter: (event) => {
           // Prevent a secondary filters that is inherited from other input
@@ -994,6 +996,7 @@ class SelectAutosuggest {
             return;
           }
 
+          // @todo Probably not needed anymore.
           // if (
           //   this.instances[id] &&
           //   this.instances[id].filter &&
@@ -1007,7 +1010,9 @@ class SelectAutosuggest {
           //   }
           // }
 
-          this.handleEnpoint(
+          // @todo should a callback be used here?
+
+          this.handleFilter(
             id,
             endpoint,
             event.target.value,
@@ -1030,6 +1035,8 @@ class SelectAutosuggest {
               }
 
               this.displaySuggestions(id);
+
+              this.handleCallback("onFilter", id, event.target);
             },
             config
           );
@@ -1047,6 +1054,8 @@ class SelectAutosuggest {
 
             this.displaySuggestions(id);
           }
+
+          this.handleCallback("onFocus", id, event.target);
         },
         onBlur: (event) => {
           const { relatedTarget } = event;
@@ -1058,6 +1067,8 @@ class SelectAutosuggest {
           ) {
             this.collapse(id);
           }
+
+          this.handleCallback("onBlur", id, event.target);
         },
         onKeyDown: (event) => {
           if (this.catchKey(event)) {
@@ -1067,6 +1078,8 @@ class SelectAutosuggest {
               // this.instances[id].preventUpdate = true;
             }
           }
+
+          this.handleCallback("onKeyDown", id, event.target);
         },
         onKeyUp: (event) => {
           if (this.catchKey(event) == null) {
@@ -1087,8 +1100,8 @@ class SelectAutosuggest {
             this.deselect(id);
           }
 
+          // Prevent accidental form submits.
           if (event.keyCode === 13) {
-            // Prevent accidental form submits.
             event.preventDefault();
 
             if (!instance.filter.value.length) {
@@ -1113,6 +1126,8 @@ class SelectAutosuggest {
             }
 
             instance.filter.setAttribute(cacheTag, instance.filter.value);
+
+            this.handleCallback("onKeyUp", id, event.target);
           });
         },
       });
@@ -1140,6 +1155,8 @@ class SelectAutosuggest {
             // this.log("prevent submit");
             event.preventDefault();
           }
+
+          this.handleCallback("onSubmit", id, event.target);
         },
       });
 
@@ -1423,9 +1440,16 @@ class SelectAutosuggest {
    *
    * @param {String} endpoint The public path to interact with.
    */
-  handleEnpoint(id, endpoint, query, handler, config) {
+  handleFilter(id, endpoint, query, handler, config) {
+    const instance = this;
+
     if (this.instances[id].preventFilter) {
       return;
+    }
+
+    // Skip the undefined endpoint for this request.
+    if (!endpoint) {
+      return handler([]);
     }
 
     // this.instances[id].preventFilter = true;
@@ -1447,7 +1471,7 @@ class SelectAutosuggest {
     const c = config || {};
     let method = c.method && c.method === "POST" ? "POST" : "GET";
 
-    if (this.instances[id].target)
+    if (this.instances[id].target) {
       request.open(
         method,
         method === "POST"
@@ -1455,6 +1479,7 @@ class SelectAutosuggest {
           : `${endpoint}${this.serialize(c.parameters || {})}`,
         true
       );
+    }
 
     // Define the required header for the actual request.
     if (method === "POST") {
@@ -1473,24 +1498,24 @@ class SelectAutosuggest {
         try {
           response = JSON.parse(this.response);
         } catch (error) {
-          this.error(`Unable to parse response from: ${query}`);
+          instance.error(`Unable to parse response from: ${query}`);
         }
 
         if (response) {
           if (c.transform) {
-            this.log(`Transforming response...`);
+            instance.log(`Transforming endpoint output with custom handler.`);
 
             let transformedResponse;
             try {
               transformedResponse = c.transform(response);
             } catch (error) {
-              this.error(`Unable to transform response: ${error}`);
+              instance.error(`Unable to transform response: ${error}`);
             }
 
             if (Array.isArray(transformedResponse)) {
               return handler(transformedResponse);
             } else {
-              this.error(
+              instance.error(
                 "Ignoring custom transform handler, it does return an Array"
               );
 
@@ -1503,7 +1528,7 @@ class SelectAutosuggest {
           handler([]);
         }
       } else {
-        this.error(`Unable to use endpoint: ${this.statusText}`);
+        instance.error(`Unable to use endpoint: ${this.statusText}`);
       }
     };
 
@@ -1514,7 +1539,7 @@ class SelectAutosuggest {
     };
 
     request.onerror = function () {
-      this.error(`Unable to use endpoint: ${this.statusText}`);
+      instance.error(`Unable to use endpoint: ${this.statusText}`);
     };
 
     request.onloadend = () => {
@@ -1535,6 +1560,37 @@ class SelectAutosuggest {
         ? c.config.parameters
         : null
     );
+  }
+
+  /**
+   * Helper function to initiate the optional callback
+   *
+   * @param {String} name Name of the callback handler to initiate.
+   * @param {String} id Use the properties of the instance within the handler.
+   * @param {HTMLElement} context The context element where the initial handler
+   * is called from.
+   */
+  handleCallback(name, id, context) {
+    if (!this.callback || !this.instances[id] || !this.callback[name]) {
+      return;
+    }
+
+    if (typeof this.callback[name] !== "function") {
+      this.log(
+        `Warning, unable to use '${name}' since it is not a valid callback handler.`
+      );
+
+      return;
+    }
+
+    // Handle the actual callback
+    this.callback[name]({
+      id: this.instances[id],
+      selections: this.instances[id].selectedValues,
+      suggestions: this.instances[id].suggestedValues,
+      query: this.instances[id].filter.value,
+      context,
+    });
   }
 
   /**
