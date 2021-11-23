@@ -13,7 +13,7 @@ class SelectAutosuggest {
 
     // Implements the logic for the selected targets
     this.target = document.querySelectorAll(
-      `${target}:not([data-${this.NAMESPACE}-id])`
+      `${target || ".select-autosuggest"}:not([data-${this.NAMESPACE}-id])`
     );
 
     // Caches the initiated selectors within the class instance.
