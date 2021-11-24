@@ -11,52 +11,39 @@
       }
     </style>
 
-    <script src="src/index.js"></script>
-    <link rel="stylesheet" href="src/index.css">
+    <script src="select-autosuggest.umd.js"></script>
+    <link rel="stylesheet" href="select-autosuggest.min.css">
     <script>
       window.addEventListener('DOMContentLoaded', (event) => {
         if (SelectAutosuggest) {
           const select = new SelectAutosuggest({
-            target: '#foo',
+            callback: {
+              onClick: (result) => console.log('on click callback', result),
+              onFilter: (result) => console.log('on filter callback', result),
+              onFocus: (result) => console.log('on focus callback', result),
+              onKeyDown: (result) => console.log('on keydown callback', result),
+              onKeyUp: (result) => console.log('on keyup callback', result),
+              onSubmit: (result) => console.log('on submit callback', result),
+            },
             config: {
               placeholder: '',
-              parameters: {
-                q: 'foo'
-              },
+              filterName: 'text',
               maxSuggestions: 10,
               method: 'GET',
               transform: (result) => Object.keys(result).map(k => [encodeURIComponent(k), k])
             },
           });
 
-          const select2 = new SelectAutosuggest({
-            target: '#bar',
-            config: {
-              placeholder: '',
-              parameters: {
-                q: 'foo'
-              },
-              maxSuggestions: 48,
-              method: 'GET',
-              transform: (result) => Object.keys(result).map(k => [encodeURIComponent(k), k])
-            },
-          });
-
           select.start();
-          select2.start();
         }
       })
     </script>
   </head>
   <body>
     <div class="wrapper">
-      <p>Voluptate est minim proident sunt magna excepteur deserunt sunt. Excepteur pariatur sit quis ullamco. Dolor cupidatat labore excepteur nisi culpa fugiat cillum nostrud ipsum aliqua sint consectetur aliqua. Nulla adipisicing dolore enim commodo occaecat deserunt dolor consectetur.</p>
-
-      <a href="#">Foo</a>
-
       <form>
-        <h5>Initial setup</h5>
-        <select id="foo" class="select-autosuggest" data-select-autosuggest-endpoint="https://raw.githubusercontent.com/mdn/content/main/files/en-us/_wikihistory.json" data-select-autosuggest-placeholder="Select an option">
+        <h5>Single Select</h5>
+        <select id="foo" class="select-autosuggest" data-select-autosuggest-placeholder="Select an option">
           <option value="1">Red</option>
           <option value="2">Green</option>
           <option value="3">Blue</option>
@@ -66,7 +53,7 @@
         <br/>
         <br/>
 
-        <h5>Multiple select</h5>
+        <h5>Multiple Select with Endpoint</h5>
         <select id="bar" multiple class="select-autosuggest" data-select-autosuggest-endpoint="https://raw.githubusercontent.com/mdn/content/main/files/en-us/_wikihistory.json" data-select-autosuggest-placeholder="Search for options">
           <option selected value="foo">FOO</option>
           <option value="bar">BAR</option>

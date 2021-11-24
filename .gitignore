@@ -1,2 +1,4 @@
 *.map
 *.css
+dist/*.css
+dist/*.js
