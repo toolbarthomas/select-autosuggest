@@ -158,21 +158,40 @@ class SelectAutosuggest {
     target.innerHTML = "";
 
     // Remember the existing selections.
-    this.instances[id].selectedValues.forEach((v) => {
-      const [value, label] = v;
-      const option = document.createElement("option");
+    if (this.instances[id].selectedValues.length) {
+      this.instances[id].selectedValues.forEach((v) => {
+        const [value, label] = v;
+        const option = document.createElement("option");
 
-      option.selected = "true";
+        option.selected = "true";
 
-      option.value = value;
-      option.innerHTML = label;
+        option.value = value;
+        option.innerHTML = label;
 
-      target.appendChild(option);
+        target.appendChild(option);
+      });
+    }
 
-      // Trigger a change event to notify other modules the element has been
-      // changed.
-      target.dispatchEvent(new CustomEvent("change"));
-    });
+    if (this.instances[id].initialValue.length) {
+      this.instances[id].initialValue.forEach((v) => {
+        const [value, label] = v;
+
+        if (document.querySelector(`option[value=${value}]`)) {
+          return;
+        }
+
+        const option = document.createElement("option");
+
+        option.value = value;
+        option.innerHTML = label;
+
+        target.appendChild(option);
+      });
+    }
+
+    // Trigger a change event to notify other modules the element has been
+    // changed.
+    target.dispatchEvent(new CustomEvent("change"));
 
     target.removeAttribute("style");
 
