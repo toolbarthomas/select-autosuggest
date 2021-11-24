@@ -734,6 +734,10 @@ class SelectAutosuggest {
     const wrapper = document.createElement("div");
     wrapper.classList.add(`${this.NAMESPACE}__filter-wrapper`);
 
+    if (this.config && this.config.filterName) {
+      filter.setAttribute("name", this.config.filterName);
+    }
+
     filter.setAttribute(`data-${this.NAMESPACE}-filter-id`, id);
     filter.classList.add(`${this.NAMESPACE}__filter`);
     const placeholder = target.getAttribute(
@@ -1469,7 +1473,20 @@ class SelectAutosuggest {
     const request = new XMLHttpRequest();
 
     const c = config || {};
+    if (!c.parameters) {
+      c.parameters = {};
+    }
+
     let method = c.method && c.method === "POST" ? "POST" : "GET";
+
+    // Include the actual filter within the request.
+    const commit = {};
+    const filterName = this.instances[id].filter.getAttribute("name") || id;
+    commit[filterName] = this.instances[id].filter.value;
+
+    if (Object.values(commit).length) {
+      c.parameters = Object.assign(c.parameters, commit);
+    }
 
     if (this.instances[id].target) {
       request.open(
@@ -1555,6 +1572,7 @@ class SelectAutosuggest {
       }, 1);
     };
 
+    // @todo should check parameters with post method.
     request.send(
       c.config && c.config.method === "POST" && c.config.parameters
         ? c.config.parameters
