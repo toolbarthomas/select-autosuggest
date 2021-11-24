@@ -157,9 +157,12 @@ class SelectAutosuggest {
 
     target.innerHTML = "";
 
-    this.instances[id].initialValue.forEach((v) => {
+    // Remember the existing selections.
+    this.instances[id].selectedValues.forEach((v) => {
       const [value, label] = v;
       const option = document.createElement("option");
+
+      option.selected = "true";
 
       option.value = value;
       option.innerHTML = label;
@@ -739,6 +742,7 @@ class SelectAutosuggest {
     }
 
     filter.setAttribute(`data-${this.NAMESPACE}-filter-id`, id);
+    filter.setAttribute("autocomplete", "off");
     filter.classList.add(`${this.NAMESPACE}__filter`);
     const placeholder = target.getAttribute(
       `data-${this.NAMESPACE}-placeholder`
@@ -883,7 +887,7 @@ class SelectAutosuggest {
       const [value, label] = v;
       const option = document.createElement("option");
 
-      option.setAttribute("selected", "selected");
+      option.selected = true;
       option.value = value;
       option.innerHTML = label;
 
@@ -1294,6 +1298,10 @@ class SelectAutosuggest {
     }
 
     const leftover = [];
+
+    if (!this.instances[id].suggestedValues) {
+      return;
+    }
 
     const list = this.instances[id].suggestedValues.filter((v) => {
       if (!v) {
