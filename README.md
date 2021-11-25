@@ -35,7 +35,7 @@ Then you can define a new instance for one or multiple select elements:
 <script>
   // Ensure the actual library is loaded.
   window.addEventListener("DOMContentLoaded", (event) => {
-    // SelectAutosuggest should be avaible within the window Object.
+    // SelectAutosuggest should be available within the window Object.
     const select = new SelectAutosuggest();
 
     select.start();

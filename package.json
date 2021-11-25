@@ -1,13 +1,13 @@
 {
   "name": "@toolbarthomas/select-autosuggest",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Another vanilla javascript library to replace the native select element with an autosuggest field.",
   "main": "src/index.js",
   "files": [
     "dist/index.html",
     "dist/select-autosuggest.css",
     "dist/select-autosuggest.css.map",
-    "dist/select-autosuggest.min.css.map",
+    "dist/select-autosuggest.min.css",
     "dist/select-autosuggest.umd.js",
     "dist/select-autosuggest.umd.min.js",
     "src/index.js",
