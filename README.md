@@ -45,25 +45,29 @@ Then you can define a new instance for one or multiple select elements:
 
 ## Options
 
-| Option                | Type     | Description                                                                                                                     |
-| --------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| callback              | object   | Include optional callbacks for the following events:                                                                            |
-| callback.onClick      | function | Optional handler that will be called after the onClick event.                                                                   |
-| callback.onFilter     | function | Optional handler that will be called after the onFilter event.                                                                  |
-| callback.onFocus      | function | Optional handler that will be called after the onFocus event.                                                                   |
-| callback.onKeyDown    | function | Optional handler that will be called after the onKeyDown event.                                                                 |
-| callback.onKeyUp      | function | Optional handler that will be called after the onKeyUp event.                                                                   |
-| callback.onSubmit     | function | Optional handler that will be called after the onSubmit event.                                                                  |
-| config                | object   | The optional filter configuration.                                                                                              |
-| config.filterName     | string   | The value for the filter name attribute, this will be included within the endpoint parameters.                                  |
-| config.maxSuggestions | number   | The amount of suggestions to display for the current instance.                                                                  |
-| config.maxSuggestions | number   | The amount of suggestions to display for the current instance. (Default 48)                                                     |
-| config.method         | POST/GET | Defines the method for the XMLHttpRequest method.                                                                               |
-| config.parameters     | object   | The optional parameters to send with the XMLHttpRequest.                                                                        |
-| config.placeholder    | string   | The placeholder to display for the rendered filter element.                                                                     |
-| config.transform      | function | Optional handler to transform the endpoint result into the expected format. (See the transform section for more information...) |
-| endpoint              | string   | Endpoint as URL to use within the actual remote data request.                                                                   |
-| target                | string   | Creates a new Select Autosuggest instance for the defined DOM selector.                                                         |
+| Option                       | Type     | Description                                                                                                                     |
+| ---------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| callback                     | object   | Include optional callbacks for the following events:                                                                            |
+| callback.onClick             | function | Optional handler that will be called after the onClick event.                                                                   |
+| callback.onDisplaySelection  | function | Optional handler that will be called after a selection has been made within the instance.                                       |
+| callback.onDisplaySelections | function | Optional handler that will be called after the selections has been updated within the instance.                                 |
+| callback.onRenderComplete    | function | Optional handler that will be called after the required elements have been rendered for the instance.                           |
+| callback.onDestroy           | function | Optional handler that will be called after the instance is destroyed.                                                           |
+| callback.onFilter            | function | Optional handler that will be called after the onFilter event.                                                                  |
+| callback.onFocus             | function | Optional handler that will be called after the onFocus event.                                                                   |
+| callback.onKeyDown           | function | Optional handler that will be called after the onKeyDown event.                                                                 |
+| callback.onKeyUp             | function | Optional handler that will be called after the onKeyUp event.                                                                   |
+| callback.onSubmit            | function | Optional handler that will be called after the onSubmit event.                                                                  |
+| config                       | object   | The optional filter configuration.                                                                                              |
+| config.filterName            | string   | The value for the filter name attribute, this will be included within the endpoint parameters.                                  |
+| config.maxSuggestions        | number   | The amount of suggestions to display for the current instance.                                                                  |
+| config.maxSuggestions        | number   | The amount of suggestions to display for the current instance. (Default 48)                                                     |
+| config.method                | POST/GET | Defines the method for the XMLHttpRequest method.                                                                               |
+| config.parameters            | object   | The optional parameters to send with the XMLHttpRequest.                                                                        |
+| config.placeholder           | string   | The placeholder to display for the rendered filter element.                                                                     |
+| config.transform             | function | Optional handler to transform the endpoint result into the expected format. (See the transform section for more information...) |
+| endpoint                     | string   | Endpoint as URL to use within the actual remote data request.                                                                   |
+| target                       | string   | Creates a new Select Autosuggest instance for the defined DOM selector.                                                         |
 
 ## Including Remote Data
 
