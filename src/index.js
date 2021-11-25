@@ -2,8 +2,16 @@
   // Figure out the issue where an click is handled during the enter within an input element.
   class SelectAutosuggest {
     constructor(props) {
-      const { delay, endpoint, target, callback, config, context, NAMESPACE } =
-        props || {};
+      const {
+        delay,
+        endpoint,
+        target,
+        callback,
+        config,
+        context,
+        silent,
+        NAMESPACE,
+      } = props || {};
 
       // Will be used to prefix all logic for the current instance.
       this.NAMESPACE = NAMESPACE || "select-autosuggest";
@@ -39,6 +47,9 @@
 
       // Gives the user some time in miliseconds to use the actual inputs.
       this.delay = delay || 200;
+
+      // Prevents non important logging.
+      this.silent = silent;
     }
 
     /**
@@ -198,6 +209,8 @@
       target.removeAttribute("style");
 
       target.removeAttribute("tabindex");
+
+      this.handleCallback("onDestroy", id, target);
 
       // Remove the autosuggest enable flag.
       delete target[this.name];
@@ -1705,6 +1718,10 @@
      * Console.log alias to ensure browser support.
      */
     log(...args) {
+      if (this.silent) {
+        return;
+      }
+
       if (!window.console || !console.log) {
         return;
       }
