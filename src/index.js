@@ -1662,7 +1662,8 @@
 
       // Handle the actual callback
       this.callback[name]({
-        id: this.instances[id],
+        id: id,
+        instance: this.instances[id],
         selections: this.instances[id].selectedValues,
         suggestions: this.instances[id].suggestedValues,
         query: this.instances[id].filter.value,
