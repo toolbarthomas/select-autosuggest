@@ -60,12 +60,11 @@
 
         this.renderTarget(this.target[i]);
         this.renderWrapper(this.target[i]);
-
         this.renderSuggestions(this.target[i]);
-
         this.renderFilter(this.target[i]);
-
         this.renderSelections(this.target[i]);
+
+        this.handleCallback("onRenderComplete", id, this.target[i]);
 
         this.defineForm(this.target[i]);
 
@@ -349,6 +348,8 @@
       } else {
         this.instances[id].selections.innerHTML = "";
       }
+
+      this.handleCallback("onDisplaySelections", id, this.instances[id].target);
     }
 
     /**
@@ -381,6 +382,8 @@
       this.update(id, {
         preventFilter: false,
       });
+
+      this.handleCallback("onDisplaySelection", id, this.instances[id].target);
 
       // this.instances[id].preventFilter = false;
     }
@@ -509,6 +512,12 @@
 
         this.collapse(id);
       }
+
+      this.handleCallback(
+        "onDisplaySuggestions",
+        id,
+        this.instances[id].target
+      );
     }
 
     /**
@@ -994,6 +1003,8 @@
               if (instance.suggestedValues && instance.suggestedValues.length) {
                 this.displaySuggestions(id);
               }
+
+              this.handleCallback("onClick", id, target);
             } else {
               // Prevent collapse for removed autosuggest elements.
               if (
@@ -1004,6 +1015,7 @@
                 this.update(id, {
                   preventCollapse: false,
                 });
+
                 // this.instances[id].preventCollapse = false;
               }
 
@@ -1011,8 +1023,6 @@
                 this.collapse(id);
               }
             }
-
-            this.handleCallback("onClick", id, target);
           },
           onFilter: (event) => {
             // Prevent a secondary filters that is inherited from other input
