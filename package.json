@@ -1,15 +1,21 @@
 {
-  "name": "select-autosuggest",
-  "version": "0.1.0",
-  "description": "Multiselect with API endpoint features",
+  "name": "@toolbarthomas/select-autosuggest",
+  "version": "0.1.1",
+  "description": "Another vanilla javascript library to replace the native select element with an autosuggest field.",
   "main": "src/index.js",
+  "files": [
+    "dist/index.html",
+    "src/index.js",
+    "src/index.scss"
+  ],
   "scripts": {
     "build": "run-p build:**",
     "build:sass:default": "sass src/index.scss ./dist/select-autosuggest.css",
     "build:sass:min": "sass src/index.scss ./dist/select-autosuggest.min.css --style=compressed  --no-source-map",
     "build:umd:default": "babel src/index.js --out-file dist/select-autosuggest.umd.js --presets=@babel/preset-env",
     "build:umd:min": "babel src/index.js --out-file dist/select-autosuggest.umd.min.js --presets=@babel/preset-env,minify",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -31,9 +37,7 @@
     "@babel/core": "^7.16.0",
     "@babel/preset-env": "^7.16.4",
     "babel-preset-minify": "^0.5.1",
-    "sass": "^1.43.2"
-  },
-  "dependencies": {
+    "sass": "^1.43.2",
     "npm-run-all": "^4.1.5"
   }
 }
