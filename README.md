@@ -8,9 +8,9 @@ Select autosuggest will transform select elements that will enable live filterin
 
 - Written in vanilla js, no other framework is needed.
 - Can use multiple instances during the setup.
-- Compatible with both default and multiple select elements.
-- Include and prepare optional remote data to include during the suggestions/selection.
-- Optional Base style, Select autosuggest should function without the included stylesheet.
+- Compatible with both single and multiple select elements.
+- Request and prepare optional remote data to include during the suggestions/selection.
+- Optional base styles, Select autosuggest should function without the included stylesheet.
 - Base keyboard functionality is included but you can always extend this with the optional callback handlers for each instance.
 
 ## Installation

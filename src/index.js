@@ -2,7 +2,7 @@
   // Figure out the issue where an click is handled during the enter within an input element.
   class SelectAutosuggest {
     constructor(props) {
-      const { delay, endpoint, target, callback, config, NAMESPACE } =
+      const { delay, endpoint, target, callback, config, context, NAMESPACE } =
         props || {};
 
       // Will be used to prefix all logic for the current instance.
@@ -11,8 +11,11 @@
       // Alias for the actual class.
       this.name = this.constructor.name;
 
+      // Define the given context the select the actual element.
+      this.context = context || document;
+
       // Implements the logic for the selected targets
-      this.target = document.querySelectorAll(
+      this.target = this.context.querySelectorAll(
         `${target || ".select-autosuggest"}:not([data-${this.NAMESPACE}-id])`
       );
 
@@ -176,7 +179,7 @@
         this.instances[id].initialValue.forEach((v) => {
           const [value, label] = v;
 
-          if (document.querySelector(`option[value=${value}]`)) {
+          if (this.context.querySelector(`option[value=${value}]`)) {
             return;
           }
 
@@ -227,10 +230,10 @@
       // Ensure the current target value does not exist as subscribed instance.
       let id = target.getAttribute(`${this.NAMESPACE}-id`) || target.id;
 
-      if (!id || document.querySelector(`#${id}`) !== target) {
+      if (!id || this.context.querySelector(`#${id}`) !== target) {
         id = this.generateID();
 
-        this.error(`Unable to find existing ID, creating new ID: ${id}`);
+        this.log(`Unable to find existing ID, creating new ID: ${id}`);
       }
 
       this.instances[id] = {
@@ -643,7 +646,7 @@
       const id = this.filterTargetID(target);
 
       // @todo should be form from target instead.
-      const form = document.querySelector("form");
+      const form = this.context.querySelector("form");
 
       if (!form) {
         return;
@@ -700,7 +703,7 @@
       if (
         target.parentNode &&
         target.parentNode ===
-          document.querySelector(
+          this.context.querySelector(
             `.${this.NAMESPACE}-wrapper[data-${this.NAMESPACE}-wrapper-id="${id}"]`
           )
       ) {
