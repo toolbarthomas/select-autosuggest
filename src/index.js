@@ -1276,6 +1276,10 @@
           });
           // this.instances[id].selectedValues = [selectedValue];
         }
+
+        this.handleCallback("onSelect", id, this.instances[id].target, {
+          selectedValue,
+        });
       }
 
       // Update the instance target.
@@ -1339,6 +1343,10 @@
 
       // Filter out the selected suggestion.
       this.displaySuggestions(id);
+
+      this.handleCallback("onDeselect", id, this.instances[id].target, {
+        removedValue: selection,
+      });
     }
 
     validateCollapse(id) {
@@ -1647,7 +1655,7 @@
      * @param {HTMLElement} context The context element where the initial handler
      * is called from.
      */
-    handleCallback(name, id, context) {
+    handleCallback(name, id, context, props) {
       if (!this.callback || !this.instances[id] || !this.callback[name]) {
         return;
       }
@@ -1668,6 +1676,7 @@
         suggestions: this.instances[id].suggestedValues,
         query: this.instances[id].filter.value,
         context,
+        props,
       });
     }
 
