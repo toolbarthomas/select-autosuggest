@@ -18,8 +18,8 @@ $select-autosuggest-suggestion-border-radius: 5rem !default;
 $select-autosuggest-suggestions-padding: 1rem !default;
 $select-autosuggest-suggestions-border-radius: 0.5rem !default;
 $select-autosuggest-suggestions-box-shadow:
-  0 1.5rem 4rem 0 rgb(#000000, 0.22),
-  0 0.25rem 0.8rem 0 rgb(#000000, 0.18) !default;
+  0 1.5rem 4rem 0 rgba(#000000, 0.22),
+  0 0.25rem 0.8rem 0 rgba(#000000, 0.18) !default;
 
 $select-autosuggest-z-index: 300 !default;
 
