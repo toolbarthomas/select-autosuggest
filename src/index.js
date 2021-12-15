@@ -71,8 +71,8 @@
 
         this.renderTarget(this.target[i]);
         this.renderWrapper(this.target[i]);
-        this.renderSuggestions(this.target[i]);
         this.renderFilter(this.target[i]);
+        this.renderSuggestions(this.target[i]);
         this.renderSelections(this.target[i]);
 
         this.handleCallback("onRenderComplete", id, this.target[i]);
@@ -545,6 +545,7 @@
       const {
         form,
         filter,
+        filterWrapper,
         onBlur,
         onClick,
         onFilter,
@@ -607,6 +608,10 @@
 
       if (wrapper) {
         commit.wrapper = wrapper;
+      }
+
+      if (filterWrapper) {
+        commit.filterWrapper = filterWrapper;
       }
 
       if (this.instances[id] instanceof Object) {
@@ -781,8 +786,8 @@
 
       // Prepare the filter element.
       const filter = document.createElement("input");
-      const wrapper = document.createElement("div");
-      wrapper.classList.add(`${this.NAMESPACE}__filter-wrapper`);
+      const filterWrapper = document.createElement("div");
+      filterWrapper.classList.add(`${this.NAMESPACE}__filter-wrapper`);
 
       if (this.config && this.config.filterName) {
         filter.setAttribute("name", this.config.filterName);
@@ -801,14 +806,15 @@
         filter.setAttribute("placeholder", this.config.placeholder);
       }
 
-      wrapper.appendChild(filter);
+      filterWrapper.appendChild(filter);
 
       // Render the actual filter input.
-      target.parentNode.insertBefore(wrapper, target.nextSibling);
+      target.parentNode.insertBefore(filterWrapper, target.nextSibling);
 
       // Update the subscribed element instance.
       this.update(id, {
         filter,
+        filterWrapper,
       });
     }
 
@@ -892,8 +898,10 @@
         suggestions.setAttribute(`data-${this.NAMESPACE}-suggestions-id`, id);
         suggestions.classList.add(`${this.NAMESPACE}__suggestions`);
 
+        console.log(target.parentNode);
+
         // Render the actual suggestions input.
-        target.parentNode.insertBefore(suggestions, target.nextSibling);
+        this.instances[id].filterWrapper.appendChild(suggestions);
 
         // Update the subscribed element instance.
         this.update(id, {
