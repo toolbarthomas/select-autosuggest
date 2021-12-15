@@ -1,6 +1,6 @@
 {
   "name": "@toolbarthomas/select-autosuggest",
-  "version": "0.6.2",
+  "version": "0.7.0",
   "description": "Another vanilla javascript library to replace the native select element with an autosuggest field.",
   "main": "src/index.js",
   "files": [

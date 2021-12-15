@@ -1352,6 +1352,9 @@
       // Filter out the selected suggestion.
       this.displaySuggestions(id);
 
+      // Ensures the the user is not disturbed while removing options.
+      this.collapse(id);
+
       this.handleCallback("onDeselect", id, this.instances[id].target, {
         removedValue: selection,
       });
