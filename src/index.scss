@@ -39,8 +39,6 @@ $select-autosuggest-z-index: 300 !default;
     position: relative;
     padding-bottom: $select-autosuggest-gutter;
     margin-bottom: -$select-autosuggest-gutter;
-
-    // &[aria-busy] {}
   }
 
   &__filter {
@@ -78,28 +76,30 @@ $select-autosuggest-z-index: 300 !default;
       display: none;
     }
 
-    margin-bottom: $select-autosuggest-gutter;
+    @include select_autosuggest_assign_property('margin-bottom', $select-autosuggest-gutter);
   }
 
-  &__suggestions-list,
-  &__selections-list {
-    display: flex;
-    flex-wrap: wrap;
-    margin-right: -$select-autosuggest-gutter;
-    margin-bottom: -$select-autosuggest-gutter;
-  }
-
-  &__suggestions-list {
-    & > #{$node}__suggestion {
-      margin-right: $select-autosuggest-gutter;
-      margin-bottom: $select-autosuggest-gutter;
+  @if $select-autosuggest-gutter {
+    &__suggestions-list,
+    &__selections-list {
+      display: flex;
+      flex-wrap: wrap;
+      margin-right: -$select-autosuggest-gutter;
+      margin-bottom: -$select-autosuggest-gutter;
     }
-  }
 
-  &__selections-list {
-    &>#{$node}__selection {
-      margin-right: $select-autosuggest-gutter;
-      margin-bottom: $select-autosuggest-gutter;
+    &__suggestions-list {
+      & > #{$node}__suggestion {
+        margin-right: $select-autosuggest-gutter;
+        margin-bottom: $select-autosuggest-gutter;
+      }
+    }
+
+    &__selections-list {
+      &>#{$node}__selection {
+        margin-right: $select-autosuggest-gutter;
+        margin-bottom: $select-autosuggest-gutter;
+      }
     }
   }
 
