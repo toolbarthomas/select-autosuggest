@@ -1625,7 +1625,7 @@
         } else {
           instance.error(`Unable to use endpoint: ${this.statusText}`);
 
-          this.handleCallback("onEndpointException", id, this);
+          instance.handleCallback("onEndpointException", id, this);
         }
       };
 
