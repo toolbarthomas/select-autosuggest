@@ -53,6 +53,7 @@ Then you can define a new instance for one or multiple select elements:
 | callback.onDestroy           | function | Optional handler that will be called after the instance is destroyed.                                                           |
 | callback.onDisplaySelection  | function | Optional handler that will be called after a selection has been made within the instance.                                       |
 | callback.onDisplaySelections | function | Optional handler that will be called after the selections has been updated within the instance.                                 |
+| callback.onEndpointException | function | Optional handler that will be called during an Endpoint exception.                                                              |
 | callback.onFilter            | function | Optional handler that will be called after the onFilter event.                                                                  |
 | callback.onFocus             | function | Optional handler that will be called after the onFocus event.                                                                   |
 | callback.onKeyDown           | function | Optional handler that will be called after the onKeyDown event.                                                                 |
