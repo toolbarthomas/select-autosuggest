@@ -898,8 +898,6 @@
         suggestions.setAttribute(`data-${this.NAMESPACE}-suggestions-id`, id);
         suggestions.classList.add(`${this.NAMESPACE}__suggestions`);
 
-        console.log(target.parentNode);
-
         // Render the actual suggestions input.
         this.instances[id].filterWrapper.appendChild(suggestions);
 
@@ -1539,7 +1537,7 @@
         preventFilter: true,
       });
 
-      if (!query || query.length < 2) {
+      if (!query || query.length < (this.config.minQueryLength || 2)) {
         // this.instances[id].preventFilter = false;
         this.update(id, {
           preventFilter: false,

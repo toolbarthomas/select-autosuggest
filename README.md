@@ -66,6 +66,7 @@ Then you can define a new instance for one or multiple select elements:
 | config.maxSuggestions        | number   | The amount of suggestions to display for the current instance.                                                                  |
 | config.maxSuggestions        | number   | The amount of suggestions to display for the current instance. (Default 48)                                                     |
 | config.method                | POST/GET | Defines the method for the XMLHttpRequest method.                                                                               |
+| config.minQueryLength        | string   | The minimum amount of characters to filter with the actual endpoint.                                                            |
 | config.parameters            | object   | The optional parameters to send with the XMLHttpRequest.                                                                        |
 | config.placeholder           | string   | The placeholder to display for the rendered filter element.                                                                     |
 | config.transform             | function | Optional handler to transform the endpoint result into the expected format. (See the transform section for more information...) |
